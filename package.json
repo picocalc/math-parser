@@ -1,11 +1,28 @@
 {
-  "name": "math-parser",
-  "private": true,
+  "name": "picocalc",
+  "version": "0.0.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/picocalc/math-parser.git"
+  },
+  "files": [
+    "dist"
+  ],
   "type": "module",
+  "imports": {
+    "#lib/*": "./src/lib/*.ts"
+  },
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "test": "bun test",
     "lint": "oxlint",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "build": "tsdown",
+    "prepublishOnly": "bun run build"
   },
   "devDependencies": {
     "@gameroman/config": "0.1.0",
@@ -13,6 +30,7 @@
     "oxfmt": "0.53.0",
     "oxlint": "1.68.0",
     "oxlint-tsgolint": "0.23.0",
+    "tsdown": "0.22.2",
     "typescript": "6.0.3"
   }
 }

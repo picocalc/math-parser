@@ -1,14 +1,15 @@
 import { describe, it, expect } from "bun:test";
 
-import { calculate } from "../src";
-import { E, PI } from "../src/lib/constants";
+import { E, PI } from "#lib/constants";
 import {
   DivisionByZeroError,
   EmptyExpressionError,
   MaximumPrecisionError,
   MismatchedParenthesisError,
   OverflowError,
-} from "../src/lib/errors";
+} from "#lib/errors";
+
+import { calculate } from "../src";
 
 const win32 = process.platform === "win32";
 

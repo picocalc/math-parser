@@ -1,7 +1,8 @@
 import { describe, it, expect } from "bun:test";
 
+import { IncompleteExpressionError, ParserError } from "#lib/errors";
+
 import { calculate } from "../src";
-import { IncompleteExpressionError, ParserError } from "../src/lib/errors";
 
 describe("parse", () => {
   it("should throw ParserError for consecutive binary operators", () => {

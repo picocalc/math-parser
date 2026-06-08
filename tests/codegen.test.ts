@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 
-import { serialize } from "../src/lib/codegen";
-import { tokenize } from "../src/lib/lexer";
+import { serialize } from "#lib/codegen";
+import { tokenize } from "#lib/lexer";
 
 describe("serialize", () => {
   it("serializes a simple number", () => {

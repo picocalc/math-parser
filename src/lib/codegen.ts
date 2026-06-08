@@ -64,14 +64,6 @@ export function serialize(tokens: Token[]): string {
     const prev = tokens[i - 1];
     const grandPrev = tokens[i - 2];
 
-    // 1. Helper: Determine if the CURRENT token is a Unary Operator
-    const isUnary =
-      (token.type === "PLUS" || token.type === "MINUS") &&
-      (!prev ||
-        prev.type === "LPAREN" ||
-        ["PLUS", "MINUS", "MUL"].includes(prev.type));
-
-    // 2. Helper: Determine if the PREVIOUS token was a Unary Operator
     const prevWasUnary =
       prev &&
       (prev.type === "PLUS" || prev.type === "MINUS") &&
@@ -95,11 +87,6 @@ export function serialize(tokens: Token[]): string {
         (prev?.type === "NUMBER" || prev?.type === "RPAREN")) ||
       (token.type === "NUMBER" && prev?.type === "RPAREN")
     ) {
-      return `${acc}${segment}`;
-    }
-
-    // No space between stacked unary operators
-    if (isUnary && prevWasUnary) {
       return `${acc}${segment}`;
     }
 

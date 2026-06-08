@@ -1,7 +1,10 @@
-const PI = Math.PI.toString();
-const E = Math.E.toString();
+const PI: string = Math.PI.toString();
+const E: string = Math.E.toString();
 
-const constants = {
+const constants: {
+  readonly e: typeof E;
+  readonly pi: typeof PI;
+} = {
   e: E,
   pi: PI,
 } as const;
