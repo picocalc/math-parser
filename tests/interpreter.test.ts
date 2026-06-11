@@ -431,6 +431,16 @@ describe("evaluate", () => {
   it("should not throw OverflowError for exponentiating decimal", () => {
     expect(() => calculate("e^2")).not.toThrow(OverflowError);
   });
+
+  it("should not throw OverflowError for calculatable results", () => {
+    const overflowing = "10^1e10";
+
+    expect(() => calculate(`0 * ${overflowing}`)).not.toThrow(OverflowError);
+    expect(calculate(`0 * ${overflowing}`)).toBe("0");
+
+    expect(() => calculate(`1 ^ ${overflowing}`)).not.toThrow(OverflowError);
+    expect(calculate(`1 ^ ${overflowing}`)).toBe("1");
+  });
 });
 
 describe("evaluate - error handling", () => {
