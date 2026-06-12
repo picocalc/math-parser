@@ -130,12 +130,22 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
+          if (right.c) {
+            const c = getConst(right.c);
+            values.push({ n: ceil(c), d: 1n });
+            return;
+          }
           values.push({ n: ceil(right), d: 1n });
           return;
         }
         case "FLOOR_FN": {
           if (right.n === "OVERFLOW") {
             values.push(OverflowValue);
+            return;
+          }
+          if (right.c) {
+            const c = getConst(right.c);
+            values.push({ n: floor(c), d: 1n });
             return;
           }
           values.push({ n: floor(right), d: 1n });
