@@ -13,6 +13,7 @@ describe("serialize", () => {
     expect(serialize(tokenize("1 - 1"))).toEqual("1 - 1");
     expect(serialize(tokenize("1 * 1"))).toEqual("1 * 1");
     expect(serialize(tokenize("1 / 1"))).toEqual("1 / 1");
+    expect(serialize(tokenize("1 ^ 1"))).toEqual("1 ^ 1");
   });
 
   it("should correctly format unary operators", () => {
@@ -38,9 +39,5 @@ describe("serialize", () => {
   it("should handle implicit multiplication correctly", () => {
     expect(serialize(tokenize("2(3)"))).toEqual("2(3)");
     expect(serialize(tokenize("(2)(3)"))).toEqual("(2)(3)");
-  });
-
-  it("should handle exponentiation correctly", () => {
-    expect(serialize(tokenize("2^3"))).toEqual("2^3");
   });
 });

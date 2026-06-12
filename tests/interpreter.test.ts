@@ -271,6 +271,12 @@ describe("evaluate", () => {
     expect(calculate("0!")).toBe("1");
   });
 
+  it("should handle factorial of a big number", () => {
+    const result = calculate("2000!");
+    expect(result).toHaveLength(5736);
+    expect(result).toStartWith("331627509245");
+  });
+
   it("should handle factorial with implicit multiplication", () => {
     expect(calculate("(3!)(2)")).toBe("12");
     expect(calculate("3!(2)")).toBe("12");
@@ -333,6 +339,12 @@ describe("evaluate", () => {
     expect(calculate("216 ^ (4/3)")).toBe("1296");
   });
 
+  it("should handle negative fractional exponentiation", () => {
+    expect(calculate("8 ^ (-1/3)")).toBe("0.5");
+    expect(calculate("8 ^ (-2/3)")).toBe("0.25");
+    expect(calculate("32 ^ -0.2")).toBe("0.5");
+  });
+
   it("should handle implicit multiplication with pipe operator", () => {
     expect(calculate("2|2|")).toBe("4");
     expect(calculate("2|-2|")).toBe("4");
@@ -373,6 +385,8 @@ describe("evaluate", () => {
     expect(calculate("pi^2", { format: "precise" })).toBe("pi^2");
     expect(calculate("2pi^2", { format: "precise" })).toBe("2pi^2");
     expect(calculate("pi^-1", { format: "precise" })).toBe("1/pi");
+    expect(calculate("-pi^2", { format: "precise" })).toBe("-pi^2");
+    expect(calculate("abs(pi^2)", { format: "precise" })).toBe("pi^2");
   });
 
   it("should handle multiplying constants in non-precise mode", () => {

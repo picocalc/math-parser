@@ -1,4 +1,4 @@
-class GenericMathErrror extends Error {
+export class GenericMathErrror extends Error {
   pos?: number;
   constructor(name: string, message: string, pos?: number) {
     if (pos === undefined) {
@@ -8,12 +8,6 @@ class GenericMathErrror extends Error {
     }
     this.pos = pos;
     this.name = name;
-  }
-}
-
-export class LexerError extends GenericMathErrror {
-  constructor(message: string, pos: number) {
-    super("LexerError", message, pos);
   }
 }
 
@@ -64,17 +58,5 @@ export class MismatchedParenthesisError extends InterpreterError {
 export class InsufficientOperandsError extends InterpreterError {
   constructor(pos?: number) {
     super("Insufficient operands for operation", pos);
-  }
-}
-
-export class ParserError extends GenericMathErrror {
-  constructor(message: string, pos: number) {
-    super("ParserError", message, pos);
-  }
-}
-
-export class IncompleteExpressionError extends ParserError {
-  constructor(message: string, pos: number) {
-    super(`Incomplete expression: ${message}`, pos);
   }
 }

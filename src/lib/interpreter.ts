@@ -111,7 +111,8 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
-          values.push({ n: -rN, d: right.d, c: right.c });
+          right.n = -rN;
+          values.push(right);
           return;
         }
         case "ABS_FN": {
@@ -120,7 +121,8 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
-          values.push({ n: rN < 0 ? -rN : rN, d: right.d, c: right.c });
+          right.n = rN < 0 ? -rN : rN;
+          values.push(right);
           return;
         }
         case "CEIL_FN": {
@@ -307,9 +309,16 @@ export function evaluate(
           return;
         }
 
+        let baseN = lN;
+        let baseD = lD;
+
         if (exponentD !== 1n) {
-          const basePowerN = lN ** exponent;
-          const basePowerD = lD ** exponent;
+          if (exponent < 0) {
+            [baseN, baseD] = [baseD, baseN];
+            exponent = -exponent;
+          }
+          const basePowerN = baseN ** exponent;
+          const basePowerD = baseD ** exponent;
 
           const rootResult = nthRoot(
             { n: basePowerN, d: basePowerD, c: lC, e: lC ? exp : undefined },
@@ -321,20 +330,18 @@ export function evaluate(
           return;
         }
 
-        let baseN = lN;
-        let baseD = lD;
-
         // Handling negative exponents: flip the fraction and make exponent positive
         if (exponent < 0) {
           [baseN, baseD] = [baseD, baseN];
           exponent = -exponent;
-
           if (lC !== undefined) {
-            resN = baseN ** exponent;
-            resD = baseD ** exponent;
-            resC = lC;
-            resE = exp;
-            break;
+            values.push({
+              n: baseN ** exponent,
+              d: baseD ** exponent,
+              c: lC,
+              e: exp,
+            });
+            return;
           }
         }
 
