@@ -71,8 +71,12 @@ export function serialize(tokens: Token[]): string {
         grandPrev.type === "LPAREN" ||
         ["PLUS", "MINUS", "MUL"].includes(grandPrev.type));
 
-    // No space after '(' or before ')'
-    if (prev?.type === "LPAREN" || token.type === "RPAREN") {
+    // No space after '(' or before ')' or '!'
+    if (
+      prev?.type === "LPAREN" ||
+      token.type === "RPAREN" ||
+      token.type === "FACTORIAL"
+    ) {
       return `${acc}${segment}`;
     }
 
