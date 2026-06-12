@@ -247,7 +247,7 @@ export function evaluate(
           throw new DivisionByZeroError();
         }
         if (lN === 0n) {
-          values.push({ d: 0n, n: 0n });
+          values.push({ n: 0n, d: 1n });
           return;
         }
         if (lN === "OVERFLOW" || rN === "OVERFLOW") {

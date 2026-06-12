@@ -99,6 +99,15 @@ describe("evaluate", () => {
 
   it("should throw DivisionByZeroError for division by 0", () => {
     expect(() => calculate("1/0")).toThrow(DivisionByZeroError);
+    expect(() => calculate("0/0")).toThrow(DivisionByZeroError);
+  });
+
+  it("should not throw DivisionByZeroError when not dividing by 0", () => {
+    expect(() => calculate("1/2")).not.toThrow(DivisionByZeroError);
+    expect(() => calculate("0/1")).not.toThrow(DivisionByZeroError);
+    expect(() => calculate("0/2")).not.toThrow(DivisionByZeroError);
+
+    expect(calculate("0/1")).toBe("0");
   });
 
   it("should have have higher precedence for implicit multiplication than exponentiation", () => {
