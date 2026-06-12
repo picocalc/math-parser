@@ -1,5 +1,4 @@
 import { DivisionByZeroError } from "../errors";
-
 import { gcd } from "./gcd";
 import { OverflowValue } from "./types";
 import type { Value, ValueConstant } from "./types";

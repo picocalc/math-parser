@@ -1,27 +1,40 @@
 import type { PrecisionOptions } from "#lib/interpreter";
 import type { NormalValue, ValueConstant } from "#lib/utils/types";
 
-const getConstantStr = (coeff: string, c?: ValueConstant, e?: bigint) => {
-  if (!c) return coeff;
-  if (coeff === "0") return "0";
-  const constantStr = e && e !== 1n ? `${c}^${e}` : c;
-  if (coeff === "1") return constantStr;
-  if (coeff === "-1") return `-${constantStr}`;
+function getConstantStr(coeff: bigint, c?: ValueConstant, e?: bigint) {
+  if (coeff === 0n) return "0";
+  if (!c) return coeff.toString();
+  const absExp = e && e < 0n ? -e : e;
+  const constantStr = absExp && absExp !== 1n ? `${c}^${absExp}` : c;
+  if (coeff === 1n) return constantStr;
+  if (coeff === -1n) return `-${constantStr}`;
   return `${coeff}${constantStr}`;
-};
+}
+
+function formatPrecise(v: NormalValue): string {
+  const { n, d, c, e } = v;
+  if (n === 0n) return "0";
+  const isNegative = n < 0n;
+  const absN = isNegative ? -n : n;
+  const numSign = isNegative ? "-" : "";
+  if (c && e && e < 0n) {
+    return `${numSign}${absN.toString()}/${getConstantStr(d, c, e)}`;
+  }
+  const numeratorStr = getConstantStr(absN, c, e);
+  if (d === 1n) return `${numSign}${numeratorStr}`;
+  return `${numSign}${numeratorStr}/${d}`;
+}
 
 /**
  * Converts Result to a Decimal or Fraction String.
  */
 function formatResult(v: NormalValue, options: PrecisionOptions = {}): string {
-  const { n, d, c, e } = v;
+  const { n, d } = v;
 
   if (d === 0n) return "NaN";
 
   if (options.format === "precise") {
-    const num = getConstantStr(n.toString(), c, e);
-    if (d === 1n) return num;
-    return `${num}/${d}`;
+    return formatPrecise(v);
   }
 
   const maxDecimals = options.maxDecimals ?? 30;

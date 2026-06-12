@@ -383,10 +383,12 @@ describe("evaluate", () => {
     expect(calculate("2 * pi * pi", { format: "precise" })).toBe("2pi^2");
   });
 
-  it("should handle exponentiation + division of a constant in precise mode", () => {
+  it("should handle division of a constant in precise mode", () => {
     expect(calculate("2pi^2 / 2", { format: "precise" })).toBe("pi^2");
     expect(calculate("pi^2 / pi", { format: "precise" })).toBe("pi");
     expect(calculate("pi^3 / pi", { format: "precise" })).toBe("pi^2");
+    expect(calculate("pi / pi^2", { format: "precise" })).toBe("1/pi");
+    expect(calculate("1/pi", { format: "precise" })).toBe("1/pi");
   });
 
   it("should handle simple division of constants", () => {
