@@ -1,6 +1,6 @@
 import { gcd } from "./gcd";
 import { OverflowValue } from "./types";
-import type { Value } from "./types";
+import type { Value, ValueConstant } from "./types";
 
 export function multiply(a: Value, b: Value): Value {
   const aN = a.n;
@@ -14,9 +14,10 @@ export function multiply(a: Value, b: Value): Value {
     return OverflowValue;
   }
 
-  let n;
-  let d;
-  let c;
+  let n: bigint;
+  let d: bigint;
+  let c: ValueConstant | undefined;
+  let e: bigint | undefined;
 
   if (a.d === 1n && b.d === 1n) {
     n = aN * bN;
@@ -32,7 +33,19 @@ export function multiply(a: Value, b: Value): Value {
     c = b.c;
   } else if (a.c !== undefined && b.c === undefined) {
     c = a.c;
+  } else if (a.c === b.c) {
+    c = a.c;
   }
 
-  return { n, d, c };
+  if (a.e !== undefined && b.e !== undefined) {
+    e = a.e + b.e;
+  } else if (a.e !== undefined && b.e === undefined) {
+    e = a.e;
+  } else if (b.e !== undefined && a.e === undefined) {
+    e = b.e;
+  } else if (a.c === b.c) {
+    e = (a.e ?? 1n) + (b.e ?? 1n);
+  }
+
+  return { n, d, c, e };
 }

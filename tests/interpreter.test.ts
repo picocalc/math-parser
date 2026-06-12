@@ -372,6 +372,16 @@ describe("evaluate", () => {
     expect(calculate("2pi^2", { format: "precise" })).toBe("2pi^2");
   });
 
+  it("should handle multiplying constants in non-precise mode", () => {
+    expect(calculate("pi * pi", { maxDecimals: 4 })).toBe("9.8696");
+    expect(calculate("2 * pi * pi", { maxDecimals: 4 })).toBe("19.7392");
+  });
+
+  it("should handle multiplying constants in precise mode", () => {
+    expect(calculate("pi * pi", { format: "precise" })).toBe("pi^2");
+    expect(calculate("2 * pi * pi", { format: "precise" })).toBe("2pi^2");
+  });
+
   it("should handle simple division of constants", () => {
     expect(calculate("pi/pi")).toBe("1");
     expect(calculate("e/e")).toBe("1");

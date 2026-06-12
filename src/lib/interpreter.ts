@@ -183,6 +183,7 @@ export function evaluate(
     let resN: bigint;
     let resD: bigint;
     let resC: ValueConstant | undefined;
+    let resE: bigint | undefined;
 
     const lN = left.n;
     const rN = right.n;
@@ -316,7 +317,7 @@ export function evaluate(
         }
 
         if (lN === 0n) {
-          if (rN < 0) {
+          if (exponent < 0n) {
             throw new DivisionByZeroError();
           }
           resN = 0n;
@@ -326,12 +327,15 @@ export function evaluate(
 
         const exponentD = normalizedExponent.d;
 
+        const lE = left.e ?? 1n;
+        const exp = lE * exponent;
+
         if (exponentD === 2n) {
           const basePowerN = lN ** exponent;
           const basePowerD = lD ** exponent;
 
           const rootResult = sqrt(
-            { n: basePowerN, d: basePowerD },
+            { n: basePowerN, d: basePowerD, c: lC, e: lC ? exp : undefined },
             format === "precise",
           );
 
@@ -340,10 +344,8 @@ export function evaluate(
             return;
           }
 
-          resN = rootResult.n;
-          resD = rootResult.d;
-          resC = rootResult.c;
-          break;
+          values.push(rootResult);
+          return;
         }
 
         if (exponentD !== 1n) {
@@ -351,15 +353,13 @@ export function evaluate(
           const basePowerD = lD ** exponent;
 
           const rootResult = nthRoot(
-            { n: basePowerN, d: basePowerD },
+            { n: basePowerN, d: basePowerD, c: lC, e: lC ? exp : undefined },
             exponentD,
             format === "precise",
           );
 
-          resN = rootResult.n;
-          resD = rootResult.d;
-          resC = rootResult.c;
-          break;
+          values.push(rootResult);
+          return;
         }
 
         let baseN = lN;
@@ -367,8 +367,20 @@ export function evaluate(
 
         // Handling negative exponents: flip the fraction and make exponent positive
         if (exponent < 0n) {
+          if (lC !== undefined) {
+            const c = getConst(lC);
+            baseN = baseN * c.n ** lE;
+            baseD = baseD * c.d ** lE;
+          }
+
           [baseN, baseD] = [baseD, baseN];
           exponent = -exponent;
+
+          if (lC !== undefined) {
+            resN = baseN ** exponent;
+            resD = baseD ** exponent;
+            break;
+          }
         }
 
         if (exponent === 1n) {
@@ -376,6 +388,7 @@ export function evaluate(
           resD = baseD;
           if (normalizedExponent.c === undefined) {
             resC = lC;
+            resE = left.e;
           }
           break;
         }
@@ -394,19 +407,16 @@ export function evaluate(
           break;
         }
 
-        const c = getConst(lC);
-
-        resN = (baseN * c.n) ** exponent;
-        resD = (baseD * c.d) ** exponent;
+        resN = baseN ** exponent;
+        resD = baseD ** exponent;
+        resC = lC;
+        resE = exp;
         break;
       }
     }
 
-    if (resD > SIMPLIFY_THRESHOLD) {
-      values.push(simplify({ n: resN, d: resD, c: resC }));
-    } else {
-      values.push({ n: resN, d: resD, c: resC });
-    }
+    const value = { n: resN, d: resD, c: resC, e: resE };
+    values.push(resD > SIMPLIFY_THRESHOLD ? simplify(value) : value);
   };
 
   const pushOpWithPrecedence = (currentOp: StackOp, pos: number) => {

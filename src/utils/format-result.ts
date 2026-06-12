@@ -1,31 +1,33 @@
 import type { PrecisionOptions } from "#lib/interpreter";
 import type { NormalValue, ValueConstant } from "#lib/utils/types";
 
-const getConstantStr = (coeff: string, c?: ValueConstant) => {
+const getConstantStr = (coeff: string, c?: ValueConstant, e?: bigint) => {
   if (!c) return coeff;
   if (coeff === "0") return "0";
-  if (coeff === "1") return c;
-  if (coeff === "-1") return `-${c}`;
-  return `${coeff}${c}`;
+  const constantStr = e && e !== 1n ? `${c}^${e}` : c;
+  if (coeff === "1") return constantStr;
+  if (coeff === "-1") return `-${constantStr}`;
+  return `${coeff}${constantStr}`;
 };
 
 /**
  * Converts Result to a Decimal or Fraction String.
  */
 function formatResult(v: NormalValue, options: PrecisionOptions = {}): string {
-  const { n, d, c } = v;
+  const { n, d, c, e } = v;
 
   if (d === 0n) return "NaN";
 
   if (options.format === "precise") {
-    if (d === 1n) return getConstantStr(n.toString(), c);
-    return `${getConstantStr(n.toString(), c)}/${d}`;
+    const num = getConstantStr(n.toString(), c, e);
+    if (d === 1n) return num;
+    return `${num}/${d}`;
   }
 
   const maxDecimals = options.maxDecimals ?? 30;
 
   const isNegative = n < 0n;
-  const absN = n < 0n ? -n : n;
+  const absN = isNegative ? -n : n;
 
   const integerPart = (absN / d).toString();
   let remainder = absN % d;
