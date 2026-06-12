@@ -365,12 +365,14 @@ describe("evaluate", () => {
   it("should handle exponentiation of a constant in non-precise mode", () => {
     expect(calculate("pi^2", { maxDecimals: 4 })).toBe("9.8696");
     expect(calculate("2pi^2", { maxDecimals: 4 })).toBe("19.7392");
+    expect(calculate("pi^-1", { maxDecimals: 4 })).toBe("0.3183");
   });
 
   it("should handle exponentiation of a constant in precise mode", () => {
     expect(calculate("pi^1", { format: "precise" })).toBe("pi");
     expect(calculate("pi^2", { format: "precise" })).toBe("pi^2");
     expect(calculate("2pi^2", { format: "precise" })).toBe("2pi^2");
+    expect(calculate("pi^-1", { format: "precise" })).toBe("1/pi");
   });
 
   it("should handle multiplying constants in non-precise mode", () => {
