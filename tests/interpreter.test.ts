@@ -317,6 +317,8 @@ describe("evaluate", () => {
     expect(calculate("floor(e)", { format: "precise" })).toBe("2");
     expect(calculate("floor(2pi)", { format: "precise" })).toBe("6");
     expect(calculate("floor(2e)", { format: "precise" })).toBe("5");
+    expect(calculate("floor(pi^2)", { format: "precise" })).toBe("9");
+    expect(calculate("floor(e^2)", { format: "precise" })).toBe("7");
   });
 
   it("should handle ceil function in precise mode", () => {
@@ -324,6 +326,8 @@ describe("evaluate", () => {
     expect(calculate("ceil(e)", { format: "precise" })).toBe("3");
     expect(calculate("ceil(2pi)", { format: "precise" })).toBe("7");
     expect(calculate("ceil(2e)", { format: "precise" })).toBe("6");
+    expect(calculate("ceil(pi^2)", { format: "precise" })).toBe("10");
+    expect(calculate("ceil(e^2)", { format: "precise" })).toBe("8");
   });
 
   it("should handle sqrt function", () => {

@@ -1,8 +1,7 @@
 import { gcd } from "./gcd";
-import { OverflowValue } from "./types";
-import type { Value, ValueConstant } from "./types";
+import type { NormalValue, Value, ValueConstant } from "./types";
 
-export function multiply(a: Value, b: Value): Value {
+export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
   const aN = a.n;
   const bN = b.n;
 
@@ -10,9 +9,8 @@ export function multiply(a: Value, b: Value): Value {
     return { n: 0n, d: 1n };
   }
 
-  if (aN === "OVERFLOW" || bN === "OVERFLOW") {
-    return OverflowValue;
-  }
+  if (aN === "OVERFLOW") return a;
+  if (bN === "OVERFLOW") return b;
 
   let n: bigint;
   let d: bigint;
