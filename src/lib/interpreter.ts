@@ -132,7 +132,10 @@ export function evaluate(
           }
           if (right.c) {
             const c = getConst(right.c);
-            values.push({ n: ceil(c), d: 1n });
+            values.push({
+              n: ceil({ n: c.n * right.n, d: c.d * right.d }),
+              d: 1n,
+            });
             return;
           }
           values.push({ n: ceil(right), d: 1n });
@@ -145,7 +148,10 @@ export function evaluate(
           }
           if (right.c) {
             const c = getConst(right.c);
-            values.push({ n: floor(c), d: 1n });
+            values.push({
+              n: floor({ n: c.n * right.n, d: c.d * right.d }),
+              d: 1n,
+            });
             return;
           }
           values.push({ n: floor(right), d: 1n });

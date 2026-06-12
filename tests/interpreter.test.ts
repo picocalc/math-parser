@@ -315,11 +315,15 @@ describe("evaluate", () => {
   it("should handle floor function in precise mode", () => {
     expect(calculate("floor(pi)", { format: "precise" })).toBe("3");
     expect(calculate("floor(e)", { format: "precise" })).toBe("2");
+    expect(calculate("floor(2pi)", { format: "precise" })).toBe("6");
+    expect(calculate("floor(2e)", { format: "precise" })).toBe("5");
   });
 
   it("should handle ceil function in precise mode", () => {
     expect(calculate("ceil(pi)", { format: "precise" })).toBe("4");
     expect(calculate("ceil(e)", { format: "precise" })).toBe("3");
+    expect(calculate("ceil(2pi)", { format: "precise" })).toBe("7");
+    expect(calculate("ceil(2e)", { format: "precise" })).toBe("6");
   });
 
   it("should handle sqrt function", () => {
