@@ -54,9 +54,3 @@ export class MismatchedParenthesisError extends InterpreterError {
     super(message, pos);
   }
 }
-
-export class InsufficientOperandsError extends InterpreterError {
-  constructor(pos?: number) {
-    super("Insufficient operands for operation", pos);
-  }
-}

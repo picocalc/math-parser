@@ -5,12 +5,12 @@ type ValueConstant = "pi" | "e";
 
 type Numerator = {
   /** Numerator */
-  n: bigint;
+  readonly n: bigint;
 };
 
 type Denominator = {
   /** Numerator */
-  d: bigint;
+  readonly d: bigint;
 };
 
 type SimpleFraction = Numerator & Denominator;
@@ -19,9 +19,9 @@ type ValueExponent = Numerator & Partial<Denominator>;
 
 type NormalValue = SimpleFraction & {
   /** Constant */
-  c?: ValueConstant;
+  readonly c?: ValueConstant;
   /** Constant exponent */
-  e?: ValueExponent;
+  readonly e?: ValueExponent;
 };
 
 type Value = NormalValue | OverflowValue;

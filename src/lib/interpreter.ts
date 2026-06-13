@@ -1,6 +1,5 @@
 import {
   MismatchedParenthesisError,
-  InsufficientOperandsError,
   EmptyExpressionError,
   MaximumPrecisionError,
   OverflowError,
@@ -98,8 +97,7 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
-          right.n = -rN;
-          values.push(right);
+          values.push({ ...right, n: -rN });
           return;
         }
         case "ABS_FN": {
@@ -108,8 +106,8 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
-          right.n = rN < 0 ? -rN : rN;
-          values.push(right);
+          const n = rN < 0 ? -rN : rN;
+          values.push({ ...right, n });
           return;
         }
         case "CEIL_FN": {
@@ -155,10 +153,7 @@ export function evaluate(
       return;
     }
 
-    const left = values.pop();
-    if (left === undefined) {
-      throw new InsufficientOperandsError(pos);
-    }
+    const left = values.pop()!;
 
     let resN: bigint;
     let resD: bigint;
