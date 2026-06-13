@@ -1,4 +1,5 @@
 import { DivisionByZeroError, InterpreterError } from "../errors";
+import { ZERO } from "./constants";
 import { simplify } from "./simplify";
 import type { NormalValue } from "./types";
 
@@ -63,7 +64,7 @@ export function nthRoot(
     return { n: -positiveResult.n, d: positiveResult.d };
   }
 
-  if (v.n === 0n) return { n: 0n, d: 1n };
+  if (v.n === 0n) return ZERO;
 
   // 1. Try for an exact integer root if 'precise' is requested
   if (precise) {

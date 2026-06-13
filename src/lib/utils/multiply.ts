@@ -1,3 +1,4 @@
+import { ZERO } from "./constants";
 import { gcd } from "./gcd";
 import type { NormalValue, Value, ValueConstant } from "./types";
 
@@ -5,9 +6,7 @@ export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
   const aN = a.n;
   const bN = b.n;
 
-  if (aN === 0n || bN === 0n) {
-    return { n: 0n, d: 1n };
-  }
+  if (aN === 0n || bN === 0n) return ZERO;
 
   if (aN === "OVERFLOW") return a;
   if (bN === "OVERFLOW") return b;

@@ -1,4 +1,5 @@
 import { InterpreterError } from "../errors";
+import { ZERO } from "./constants";
 import { simplify } from "./simplify";
 import type { Value } from "./types";
 
@@ -43,7 +44,7 @@ export function sqrt(
     throw new InterpreterError("Square root of negative not supported yet.");
   }
 
-  if (v.n === 0n) return { n: 0n, d: 1n };
+  if (v.n === 0n) return ZERO;
 
   if (precise) {
     const [nIsSquare, nRoot] = isPerfectSquare(v.n);

@@ -1,5 +1,5 @@
-import { getConst } from "../constants";
 import { DivisionByZeroError } from "../errors";
+import { getConst, ZERO } from "./constants";
 import { gcd } from "./gcd";
 import { multiply } from "./multiply";
 import type { NormalValue } from "./types";
@@ -9,7 +9,7 @@ import type { NormalValue } from "./types";
  */
 function simplify(v: NormalValue): NormalValue {
   if (v.d === 0n) throw new DivisionByZeroError();
-  if (v.n === 0n) return { n: 0n, d: 1n, c: v.c, e: v.e };
+  if (v.n === 0n) return ZERO;
   if (v.d === 1n) return v;
   const common = gcd(v.n, v.d);
   const sign = v.d < 0n ? -1n : 1n;

@@ -1,6 +1,5 @@
 import { describe, it, expect } from "bun:test";
 
-import { E, PI } from "#lib/constants";
 import {
   DivisionByZeroError,
   EmptyExpressionError,
@@ -8,6 +7,7 @@ import {
   MismatchedParenthesisError,
   OverflowError,
 } from "#lib/errors";
+import { E, PI } from "#lib/utils/constants";
 
 import { calculate } from "../src";
 

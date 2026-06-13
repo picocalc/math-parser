@@ -1,7 +1,9 @@
-import type { NormalValue, ValueConstant } from "./utils/types";
+import type { NormalValue, ValueConstant } from "./types";
 
 const PI: string = Math.PI.toString();
 const E: string = Math.E.toString();
+
+const ZERO = { n: 0n, d: 1n } as const;
 
 const constants: {
   readonly e: typeof E;
@@ -19,4 +21,4 @@ function getConst(id: ValueConstant): NormalValue {
   };
 }
 
-export { getConst, constants, PI, E };
+export { getConst, constants, PI, E, ZERO };

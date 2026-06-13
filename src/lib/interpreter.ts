@@ -1,4 +1,3 @@
-import { getConst } from "./constants";
 import {
   UnexpectedEndOfExpressionError,
   MismatchedParenthesisError,
@@ -7,17 +6,17 @@ import {
   EmptyExpressionError,
   MaximumPrecisionError,
   OverflowError,
-  DivisionByZeroError,
 } from "./errors";
 import type { ParsedToken } from "./parser";
 import { ceil } from "./utils/ceil";
+import { getConst } from "./utils/constants";
 import { divide } from "./utils/divide";
+import { exponentiate } from "./utils/exponentiate";
 import { factorial } from "./utils/factorial";
 import { floor } from "./utils/floor";
 import { gcd } from "./utils/gcd";
 import { mod } from "./utils/mod";
 import { multiply } from "./utils/multiply";
-import { nthRoot } from "./utils/nthroot";
 import { simplify, toSimpleFraction } from "./utils/simplify";
 import { sqrt } from "./utils/sqrt";
 import { OverflowValue } from "./utils/types";
@@ -168,7 +167,6 @@ export function evaluate(
     let resN: bigint;
     let resD: bigint;
     let resC: ValueConstant | undefined;
-    let resE: bigint | undefined;
 
     const lN = left.n;
     const rN = right.n;
@@ -236,131 +234,12 @@ export function evaluate(
         return;
       }
       case "EXP": {
-        if (rN === 0n) {
-          resN = 1n;
-          resD = 1n;
-          break;
-        }
-
-        if (lN === "OVERFLOW") {
-          values.push(OverflowValue);
-          return;
-        }
-
-        const lD = left.d;
-        const lC = left.c;
-
-        if (lN === lD && lC === undefined) {
-          resN = 1n;
-          resD = 1n;
-          break;
-        }
-
-        if (rN === "OVERFLOW") {
-          values.push(OverflowValue);
-          return;
-        }
-
-        const normalizedExponent = simplify(right);
-
-        let exponent = normalizedExponent.n;
-
-        if (lN === 0n) {
-          if (exponent < 0) {
-            throw new DivisionByZeroError();
-          }
-          resN = 0n;
-          resD = 1n;
-          break;
-        }
-
-        const exponentD = normalizedExponent.d;
-
-        const lE = left.e ?? 1n;
-        const exp = lE * exponent;
-
-        if (exponentD === 2n) {
-          const basePowerN = lN ** exponent;
-          const basePowerD = lD ** exponent;
-
-          const rootResult = sqrt(
-            { n: basePowerN, d: basePowerD, c: lC, e: lC ? exp : undefined },
-            format === "precise",
-          );
-
-          values.push(rootResult);
-          return;
-        }
-
-        let baseN = lN;
-        let baseD = lD;
-
-        if (exponentD !== 1n) {
-          if (exponent < 0) {
-            [baseN, baseD] = [baseD, baseN];
-            exponent = -exponent;
-          }
-          const basePowerN = baseN ** exponent;
-          const basePowerD = baseD ** exponent;
-
-          const rootResult = nthRoot(
-            { n: basePowerN, d: basePowerD, c: lC, e: lC ? exp : undefined },
-            exponentD,
-            format === "precise",
-          );
-
-          values.push(rootResult);
-          return;
-        }
-
-        // Handling negative exponents: flip the fraction and make exponent positive
-        if (exponent < 0) {
-          [baseN, baseD] = [baseD, baseN];
-          exponent = -exponent;
-          if (lC !== undefined) {
-            values.push({
-              n: baseN ** exponent,
-              d: baseD ** exponent,
-              c: lC,
-              e: exp,
-            });
-            return;
-          }
-        }
-
-        if (exponent === 1n) {
-          resN = baseN;
-          resD = baseD;
-          if (normalizedExponent.c === undefined) {
-            resC = lC;
-            resE = left.e;
-          }
-          break;
-        }
-
-        if (
-          exponent > 1e4 &&
-          (baseN * exponent > 6e6 || baseD * exponent > 6e6)
-        ) {
-          values.push(OverflowValue);
-          return;
-        }
-
-        if (!lC) {
-          resN = baseN ** exponent;
-          resD = baseD ** exponent;
-          break;
-        }
-
-        resN = baseN ** exponent;
-        resD = baseD ** exponent;
-        resC = lC;
-        resE = exp;
-        break;
+        values.push(exponentiate(left, right, format === "precise"));
+        return;
       }
     }
 
-    const value = { n: resN, d: resD, c: resC, e: resE };
+    const value = { n: resN, d: resD, c: resC };
     values.push(resD > SIMPLIFY_THRESHOLD ? simplify(value) : value);
   };
 
