@@ -1,4 +1,4 @@
-import { constants } from "./constants";
+import { getConst } from "./constants";
 import {
   UnexpectedEndOfExpressionError,
   MismatchedParenthesisError,
@@ -53,14 +53,6 @@ function isUnaryOperation(op: StackOp) {
     op === "FLOOR_FN" ||
     op === "SQRT_FN"
   );
-}
-
-function getConst(id: ValueConstant): NormalValue {
-  const c = constants[id];
-  return {
-    n: BigInt(c.replace(".", "")),
-    d: 10n ** BigInt(c.length - c.indexOf(".") - 1),
-  };
 }
 
 /**
