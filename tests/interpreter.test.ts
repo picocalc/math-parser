@@ -434,6 +434,7 @@ describe("evaluate", () => {
     expect(calculate("pi^(2/3)", { format: "precise" })).toBe("pi^(2/3)");
     expect(calculate("pi^(3/5)", { format: "precise" })).toBe("pi^(3/5)");
     expect(calculate("pi^(5/3)", { format: "precise" })).toBe("pi^(5/3)");
+    expect(calculate("pi^(3/4)", { format: "precise" })).toBe("pi^(3/4)");
   });
 
   it("should handle multiplying constants in decimal mode", () => {
