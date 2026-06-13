@@ -261,9 +261,7 @@ export function evaluate(
     ops.push(currentOp);
   };
 
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]!;
-
+  for (const token of tokens) {
     switch (token.type) {
       case "NUMBER": {
         const frac = token.fraction || "";

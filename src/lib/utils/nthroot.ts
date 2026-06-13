@@ -42,9 +42,7 @@ export function nthRoot(
   precise: boolean = false,
   precisionDigits: number = 100,
 ): NormalValue {
-  if (n === 0n) {
-    throw new DivisionByZeroError();
-  }
+  if (n === 0n) throw new DivisionByZeroError();
   if (n === 1n) return v;
 
   // Handle negatives: Error if root is even, recurse if root is odd
