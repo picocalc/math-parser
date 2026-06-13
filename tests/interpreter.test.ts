@@ -311,6 +311,8 @@ describe("evaluate", () => {
   it("should handle absolute values using abs function", () => {
     expect(calculate("abs(2)")).toBe("2");
     expect(calculate("abs(-2)")).toBe("2");
+    expect(calculate("abs 2")).toBe("2");
+    expect(calculate("abs -2")).toBe("2");
   });
 
   it("should handle floor function", () => {
@@ -355,6 +357,7 @@ describe("evaluate", () => {
     expect(calculate("sqrt(0)")).toBe("0");
     expect(calculate("sqrt(1)")).toBe("1");
     expect(calculate("sqrt(16)")).toBe("4");
+    expect(calculate("sqrt 16")).toBe("4");
   });
 
   it("should handle square root when using exponentiation", () => {
