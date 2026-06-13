@@ -1,7 +1,6 @@
 import { describe, it, expect } from "bun:test";
 
-import { LexerError } from "#lib/errors";
-import { tokenize } from "#lib/lexer";
+import { tokenize, LexerError } from "#lib/lexer";
 
 describe("tokenize", () => {
   it("shoud throw LexerError for invalid input", () => {

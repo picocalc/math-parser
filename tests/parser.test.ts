@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 
-import { IncompleteExpressionError, ParserError } from "#lib/errors";
+import { IncompleteExpressionError, ParserError } from "#lib/parser";
 
 import { calculate } from "../src";
 
@@ -50,5 +50,13 @@ describe("parse", () => {
     expect(() => calculate("pi2")).toThrow(ParserError);
     expect(() => calculate("e1")).toThrow(ParserError);
     expect(() => calculate("1e2e3")).toThrow(ParserError);
+  });
+
+  it("should throw ParserError for an unexpected factorial operator", () => {
+    expect(() => calculate("!")).toThrow(ParserError);
+  });
+
+  it("should throw ParserError for an unclosed pipe operator", () => {
+    expect(() => calculate("|")).toThrow(ParserError);
   });
 });

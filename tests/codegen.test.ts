@@ -13,11 +13,17 @@ describe("serialize", () => {
     expect(serialize(tokenize("1 - 1"))).toEqual("1 - 1");
     expect(serialize(tokenize("1 * 1"))).toEqual("1 * 1");
     expect(serialize(tokenize("1 / 1"))).toEqual("1 / 1");
+    expect(serialize(tokenize("1 ^ 1"))).toEqual("1 ^ 1");
+    expect(serialize(tokenize("1 % 1"))).toEqual("1 % 1");
   });
 
   it("should correctly format unary operators", () => {
     expect(serialize(tokenize("+1"))).toEqual("+1");
     expect(serialize(tokenize("-1"))).toEqual("-1");
+  });
+
+  it("should correctly format factorial", () => {
+    expect(serialize(tokenize("1!"))).toEqual("1!");
   });
 
   it("should serialize parentheses correctly", () => {

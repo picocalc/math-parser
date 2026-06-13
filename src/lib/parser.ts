@@ -1,4 +1,4 @@
-import { IncompleteExpressionError, ParserError } from "./errors";
+import { GenericMathErrror } from "./errors";
 import type { Token, TokenBase, TokenIdentifier } from "./lexer";
 import { getSym } from "./symbol";
 
@@ -62,6 +62,18 @@ function isBinaryOperator(token: ParsedToken) {
  */
 function isUnaryContext(last?: ParsedToken) {
   return !isOperand(last);
+}
+
+export class ParserError extends GenericMathErrror {
+  constructor(message: string, pos: number) {
+    super("ParserError", message, pos);
+  }
+}
+
+export class IncompleteExpressionError extends ParserError {
+  constructor(message: string, pos: number) {
+    super(`Incomplete expression: ${message}`, pos);
+  }
 }
 
 function resolveIdentifier(token: TokenIdentifier): TokenConst | TokenFn {

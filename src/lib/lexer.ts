@@ -1,5 +1,10 @@
-import { LexerError } from "./errors";
+import { GenericMathErrror } from "./errors";
 
+export class LexerError extends GenericMathErrror {
+  constructor(message: string, pos: number) {
+    super("LexerError", message, pos);
+  }
+}
 export interface TokenBase {
   pos: number;
 }

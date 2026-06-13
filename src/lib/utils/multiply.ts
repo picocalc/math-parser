@@ -1,22 +1,20 @@
+import { ZERO } from "./constants";
 import { gcd } from "./gcd";
-import { OverflowValue } from "./types";
-import type { Value } from "./types";
+import type { NormalValue, Value, ValueConstant } from "./types";
 
-export function multiply(a: Value, b: Value): Value {
+export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
   const aN = a.n;
   const bN = b.n;
 
-  if (aN === 0n || bN === 0n) {
-    return { n: 0n, d: 1n };
-  }
+  if (aN === 0n || bN === 0n) return ZERO;
 
-  if (aN === "OVERFLOW" || bN === "OVERFLOW") {
-    return OverflowValue;
-  }
+  if (aN === "OVERFLOW") return a;
+  if (bN === "OVERFLOW") return b;
 
-  let n;
-  let d;
-  let c;
+  let n: bigint;
+  let d: bigint;
+  let c: ValueConstant | undefined;
+  let e: bigint | undefined;
 
   if (a.d === 1n && b.d === 1n) {
     n = aN * bN;
@@ -32,7 +30,19 @@ export function multiply(a: Value, b: Value): Value {
     c = b.c;
   } else if (a.c !== undefined && b.c === undefined) {
     c = a.c;
+  } else if (a.c === b.c) {
+    c = a.c;
   }
 
-  return { n, d, c };
+  if (a.e !== undefined && b.e !== undefined) {
+    e = a.e + b.e;
+  } else if (a.e !== undefined && b.e === undefined) {
+    e = a.e;
+  } else if (b.e !== undefined && a.e === undefined) {
+    e = b.e;
+  } else if (a.c === b.c) {
+    e = (a.e ?? 1n) + (b.e ?? 1n);
+  }
+
+  return { n, d, c, e };
 }

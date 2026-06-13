@@ -1,6 +1,5 @@
 import { describe, it, expect } from "bun:test";
 
-import { E, PI } from "#lib/constants";
 import {
   DivisionByZeroError,
   EmptyExpressionError,
@@ -8,6 +7,7 @@ import {
   MismatchedParenthesisError,
   OverflowError,
 } from "#lib/errors";
+import { E, PI } from "#lib/utils/constants";
 
 import { calculate } from "../src";
 
@@ -240,6 +240,16 @@ describe("evaluate", () => {
     expect(calculate("2^1")).toBe("2");
   });
 
+  it("should handle exponentiation of decimals in decimal mode", () => {
+    const decimals = (maxDecimals: number) => ({
+      format: "decimal" as const,
+      maxDecimals,
+    });
+    expect(calculate("(1/3)^pi", decimals(12))).toBe("0.031701467835");
+    expect(calculate("e^pi", decimals(12))).toBe("23.140692632779");
+    expect(calculate("pi^(1/3)", decimals(15))).toBe("1.464591887561523");
+  });
+
   it("should handle a simple remainder division", () => {
     expect(calculate("5 % 3")).toBe("2");
     expect(calculate("10 % 3")).toBe("1");
@@ -269,6 +279,12 @@ describe("evaluate", () => {
     expect(calculate("1!")).toBe("1");
     expect(calculate("5!")).toBe("120");
     expect(calculate("0!")).toBe("1");
+  });
+
+  it("should handle factorial of a big number", () => {
+    const result = calculate("2000!");
+    expect(result).toHaveLength(5736);
+    expect(result).toStartWith("331627509245");
   });
 
   it("should handle factorial with implicit multiplication", () => {
@@ -306,6 +322,28 @@ describe("evaluate", () => {
     expect(calculate("ceil(e)")).toBe("3");
   });
 
+  it("should handle floor function in precise mode", () => {
+    expect(calculate("floor(pi)", { format: "precise" })).toBe("3");
+    expect(calculate("floor(e)", { format: "precise" })).toBe("2");
+    expect(calculate("floor(2pi)", { format: "precise" })).toBe("6");
+    expect(calculate("floor(2e)", { format: "precise" })).toBe("5");
+    expect(calculate("floor(pi^2)", { format: "precise" })).toBe("9");
+    expect(calculate("floor(e^2)", { format: "precise" })).toBe("7");
+    expect(calculate("floor(1/pi)", { format: "precise" })).toBe("0");
+    expect(calculate("floor(1/e)", { format: "precise" })).toBe("0");
+  });
+
+  it("should handle ceil function in precise mode", () => {
+    expect(calculate("ceil(pi)", { format: "precise" })).toBe("4");
+    expect(calculate("ceil(e)", { format: "precise" })).toBe("3");
+    expect(calculate("ceil(2pi)", { format: "precise" })).toBe("7");
+    expect(calculate("ceil(2e)", { format: "precise" })).toBe("6");
+    expect(calculate("ceil(pi^2)", { format: "precise" })).toBe("10");
+    expect(calculate("ceil(e^2)", { format: "precise" })).toBe("8");
+    expect(calculate("ceil(1/pi)", { format: "precise" })).toBe("1");
+    expect(calculate("ceil(1/e)", { format: "precise" })).toBe("1");
+  });
+
   it("should handle sqrt function", () => {
     expect(calculate("sqrt(0)")).toBe("0");
     expect(calculate("sqrt(1)")).toBe("1");
@@ -333,6 +371,20 @@ describe("evaluate", () => {
     expect(calculate("216 ^ (4/3)")).toBe("1296");
   });
 
+  it("should handle negative fractional exponentiation", () => {
+    expect(calculate("8 ^ (-1/3)")).toBe("0.5");
+    expect(calculate("8 ^ (-2/3)")).toBe("0.25");
+    expect(calculate("32 ^ -0.2")).toBe("0.5");
+  });
+
+  it("should handle fractional exponentiation of a negative number", () => {
+    expect(calculate("(-8) ^ (1/3)")).toBe("-2");
+    expect(calculate("(-8) ^ (2/3)")).toBe("4");
+    expect(calculate("(-32) ^ 0.2")).toBe("-2");
+    expect(calculate("(-343) ^ (1/3)")).toBe("-7");
+    expect(calculate("(-216) ^ (4/3)")).toBe("1296");
+  });
+
   it("should handle implicit multiplication with pipe operator", () => {
     expect(calculate("2|2|")).toBe("4");
     expect(calculate("2|-2|")).toBe("4");
@@ -357,9 +409,53 @@ describe("evaluate", () => {
     expect(calculate("0e", { format: "precise" })).toBe("0");
   });
 
-  it("should handle a constant in non-precise mode", () => {
+  it("should handle a constant in decimal mode", () => {
     expect(calculate("pi")).toBe(PI);
     expect(calculate("e")).toBe(E);
+  });
+
+  it("should handle exponentiation of a constant in decimal mode", () => {
+    expect(calculate("pi^2", { maxDecimals: 4 })).toBe("9.8696");
+    expect(calculate("2pi^2", { maxDecimals: 4 })).toBe("19.7392");
+    expect(calculate("pi^-1", { maxDecimals: 4 })).toBe("0.3183");
+  });
+
+  it("should handle exponentiation of a constant in precise mode", () => {
+    expect(calculate("pi^1", { format: "precise" })).toBe("pi");
+    expect(calculate("pi^2", { format: "precise" })).toBe("pi^2");
+    expect(calculate("2pi^2", { format: "precise" })).toBe("2pi^2");
+    expect(calculate("pi^-1", { format: "precise" })).toBe("1/pi");
+    expect(calculate("-pi^2", { format: "precise" })).toBe("-pi^2");
+    expect(calculate("abs(pi^2)", { format: "precise" })).toBe("pi^2");
+  });
+
+  it("should handle multiplying constants in decimal mode", () => {
+    expect(calculate("pi * pi", { maxDecimals: 4 })).toBe("9.8696");
+    expect(calculate("2 * pi * pi", { maxDecimals: 4 })).toBe("19.7392");
+  });
+
+  it("should handle multiplying constants in precise mode", () => {
+    expect(calculate("pi * pi", { format: "precise" })).toBe("pi^2");
+    expect(calculate("2 * pi * pi", { format: "precise" })).toBe("2pi^2");
+  });
+
+  it("should handle division of a constant in precise mode", () => {
+    expect(calculate("2pi^2 / 2", { format: "precise" })).toBe("pi^2");
+    expect(calculate("pi^2 / pi", { format: "precise" })).toBe("pi");
+    expect(calculate("pi^3 / pi", { format: "precise" })).toBe("pi^2");
+    expect(calculate("pi / pi^2", { format: "precise" })).toBe("1/pi");
+    expect(calculate("1/pi", { format: "precise" })).toBe("1/pi");
+  });
+
+  it("should handle nth root of a constant in precise mode", () => {
+    expect(calculate("(pi^3)^(1/3)", { format: "precise" })).toBe("pi");
+    expect(calculate("(pi^6)^(1/3)", { format: "precise" })).toBe("pi^2");
+  });
+
+  it("should handle square root of a constant in precise mode", () => {
+    expect(calculate("(pi^2)^0.5", { format: "precise" })).toBe("pi");
+    expect(calculate("(pi^2)^(1/2)", { format: "precise" })).toBe("pi");
+    expect(calculate("sqrt(pi^2)", { format: "precise" })).toBe("pi");
   });
 
   it("should handle simple division of constants", () => {
@@ -480,6 +576,8 @@ describe("evaluate - error handling", () => {
   it("should throw MaximumPrecisionError for very large scale", () => {
     const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
+    const bigNumber = "1" + "0".repeat(100_000);
+    expect(() => calculate(`1e${bigNumber}`)).toThrow(MaximumPrecisionError);
   }, 200);
 
   it("should throw OverflowError for very large factorial", () => {
@@ -493,6 +591,19 @@ describe("evaluate - error handling", () => {
 
   it("should throw OverflowError for very large exponentiation", () => {
     expect(() => calculate("1e10000000")).toThrow(OverflowError);
+  }, 200);
+
+  it("should throw OverflowError when further handling overflowing numbers", () => {
+    expect(() => calculate("-10^10^10")).toThrow(OverflowError);
+    expect(() => calculate("abs(10^10^10)")).toThrow(OverflowError);
+    expect(() => calculate("ceil(10^10^10)")).toThrow(OverflowError);
+    expect(() => calculate("floor(10^10^10)")).toThrow(OverflowError);
+    expect(() => calculate("sqrt(10^10^10)")).toThrow(OverflowError);
+    expect(() => calculate("(10^10^10)!")).toThrow(OverflowError);
+    expect(() => calculate("(10^10^10) + 1")).toThrow(OverflowError);
+    expect(() => calculate("(10^10^10) ^ 10")).toThrow(OverflowError);
+    expect(() => calculate("10 ^ (10^10^10)")).toThrow(OverflowError);
+    expect(() => calculate("|(10^10^10)|")).toThrow(OverflowError);
   }, 200);
 });
 

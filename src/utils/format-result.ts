@@ -1,31 +1,46 @@
 import type { PrecisionOptions } from "#lib/interpreter";
 import type { NormalValue, ValueConstant } from "#lib/utils/types";
 
-const getConstantStr = (coeff: string, c?: ValueConstant) => {
-  if (!c) return coeff;
-  if (coeff === "0") return "0";
-  if (coeff === "1") return c;
-  if (coeff === "-1") return `-${c}`;
-  return `${coeff}${c}`;
-};
+function getConstantStr(coeff: bigint, c?: ValueConstant, e?: bigint) {
+  if (coeff === 0n) return "0";
+  if (!c) return coeff.toString();
+  const absExp = e && e < 0 ? -e : e;
+  const constantStr = absExp && absExp !== 1n ? `${c}^${absExp}` : c;
+  if (coeff === 1n) return constantStr;
+  if (coeff === -1n) return `-${constantStr}`;
+  return `${coeff}${constantStr}`;
+}
+
+function formatPrecise(v: NormalValue): string {
+  const { n, d, c, e } = v;
+  if (n === 0n) return "0";
+  const isNegative = n < 0;
+  const absN = isNegative ? -n : n;
+  const numSign = isNegative ? "-" : "";
+  if (c && e && e < 0) {
+    return `${numSign}${absN.toString()}/${getConstantStr(d, c, e)}`;
+  }
+  const numeratorStr = getConstantStr(absN, c, e);
+  if (d === 1n) return `${numSign}${numeratorStr}`;
+  return `${numSign}${numeratorStr}/${d}`;
+}
 
 /**
  * Converts Result to a Decimal or Fraction String.
  */
 function formatResult(v: NormalValue, options: PrecisionOptions = {}): string {
-  const { n, d, c } = v;
+  const { n, d } = v;
 
   if (d === 0n) return "NaN";
 
   if (options.format === "precise") {
-    if (d === 1n) return getConstantStr(n.toString(), c);
-    return `${getConstantStr(n.toString(), c)}/${d}`;
+    return formatPrecise(v);
   }
 
-  const maxDecimals = options.maxDecimals ?? 30;
+  const { maxDecimals = 30 } = options;
 
-  const isNegative = n < 0n;
-  const absN = n < 0n ? -n : n;
+  const isNegative = n < 0;
+  const absN = isNegative ? -n : n;
 
   const integerPart = (absN / d).toString();
   let remainder = absN % d;

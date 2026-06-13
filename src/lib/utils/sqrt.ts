@@ -1,13 +1,13 @@
 import { InterpreterError } from "../errors";
+import { ZERO } from "./constants";
 import { simplify } from "./simplify";
-import { OverflowValue } from "./types";
 import type { Value } from "./types";
 
 /**
  * Calculates the integer square root of a BigInt.
  */
 function isqrt(value: bigint): bigint {
-  if (value < 0n) {
+  if (value < 0) {
     throw new InterpreterError("Square root of negative not supported yet.");
   }
   if (value < 2n) return value;
@@ -28,7 +28,7 @@ function isqrt(value: bigint): bigint {
 }
 
 function isPerfectSquare(val: bigint): [boolean, bigint] {
-  if (val < 0n) return [false, 0n];
+  if (val < 0) return [false, 0n];
   const root = isqrt(val);
   return [root * root === val, root];
 }
@@ -38,21 +38,25 @@ export function sqrt(
   precise: boolean = false,
   precisionDigits: number = 100,
 ): Value {
-  if (v.n === "OVERFLOW") {
-    return OverflowValue;
-  }
-  if (v.n < 0n) {
+  if (v.n === "OVERFLOW") return v;
+
+  if (v.n < 0) {
     throw new InterpreterError("Square root of negative not supported yet.");
   }
 
-  if (v.n === 0n) return { n: 0n, d: 1n };
+  if (v.n === 0n) return ZERO;
 
   if (precise) {
     const [nIsSquare, nRoot] = isPerfectSquare(v.n);
     const [dIsSquare, dRoot] = isPerfectSquare(v.d);
 
     if (nIsSquare && dIsSquare) {
-      return simplify({ n: nRoot, d: dRoot });
+      return simplify({
+        n: nRoot,
+        d: dRoot,
+        c: v.c,
+        e: v.e ? v.e / 2n : undefined,
+      });
     }
   }
 

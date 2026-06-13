@@ -1,4 +1,3 @@
-import { constants } from "./constants";
 import {
   UnexpectedEndOfExpressionError,
   MismatchedParenthesisError,
@@ -7,17 +6,18 @@ import {
   EmptyExpressionError,
   MaximumPrecisionError,
   OverflowError,
-  DivisionByZeroError,
 } from "./errors";
 import type { ParsedToken } from "./parser";
 import { ceil } from "./utils/ceil";
+import { getConst } from "./utils/constants";
+import { divide } from "./utils/divide";
+import { exponentiate } from "./utils/exponentiate";
 import { factorial } from "./utils/factorial";
 import { floor } from "./utils/floor";
 import { gcd } from "./utils/gcd";
 import { mod } from "./utils/mod";
 import { multiply } from "./utils/multiply";
-import { nthRoot } from "./utils/nthroot";
-import { simplify } from "./utils/simplify";
+import { simplify, toSimpleFraction } from "./utils/simplify";
 import { sqrt } from "./utils/sqrt";
 import { OverflowValue } from "./utils/types";
 import type { NormalValue, Value, ValueConstant } from "./utils/types";
@@ -54,14 +54,6 @@ function isUnaryOperation(op: StackOp) {
   );
 }
 
-function getConst(id: ValueConstant): NormalValue {
-  const c = constants[id];
-  return {
-    n: BigInt(c.replace(".", "")),
-    d: 10n ** BigInt(c.length - c.indexOf(".") - 1),
-  };
-}
-
 /**
  * Maximum allowed precision
  */
@@ -89,7 +81,7 @@ export function evaluate(
   const values: Value[] = [];
   const ops: StackOp[] = [];
 
-  const applyOp = (pos?: number) => {
+  const applyOp = (pos?: number): void => {
     const op = ops.pop();
     if (!op || op === "LPAREN" || op === "ABS_OPEN") return;
 
@@ -110,7 +102,8 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
-          values.push({ n: -rN, d: right.d, c: right.c });
+          right.n = -rN;
+          values.push(right);
           return;
         }
         case "ABS_FN": {
@@ -119,7 +112,8 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
-          values.push({ n: rN < 0n ? -rN : rN, d: right.d, c: right.c });
+          right.n = rN < 0 ? -rN : rN;
+          values.push(right);
           return;
         }
         case "CEIL_FN": {
@@ -127,7 +121,7 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
-          values.push({ n: ceil(right), d: 1n });
+          values.push({ n: ceil(toSimpleFraction(right)), d: 1n });
           return;
         }
         case "FLOOR_FN": {
@@ -135,21 +129,11 @@ export function evaluate(
             values.push(OverflowValue);
             return;
           }
-          values.push({ n: floor(right), d: 1n });
+          values.push({ n: floor(toSimpleFraction(right)), d: 1n });
           return;
         }
         case "SQRT_FN": {
-          if (right.n === "OVERFLOW") {
-            values.push(OverflowValue);
-            return;
-          }
-          if (right.c === undefined) {
-            values.push(sqrt(right, format === "precise"));
-            return;
-          }
-          const c = getConst(right.c);
-          const v = multiply(right, c);
-          values.push(sqrt(v, format === "precise"));
+          values.push(sqrt(right, format === "precise"));
           return;
         }
       }
@@ -161,7 +145,7 @@ export function evaluate(
         return;
       }
       const reduced = simplify(right);
-      if (reduced.d !== 1n || reduced.n < 0n) {
+      if (reduced.d !== 1n || reduced.n < 0) {
         throw new InterpreterError(
           "Factorial is only defined for non-negative integers",
           pos,
@@ -234,182 +218,32 @@ export function evaluate(
       }
       case "MULTIPLY":
       case "IMPLICIT_MUL": {
-        const result = multiply(left, right);
-        if (result.n === "OVERFLOW") {
-          values.push(OverflowValue);
-          return;
-        }
-        values.push(result);
+        values.push(multiply(left, right));
         return;
       }
       case "DIVIDE": {
-        if (rN === 0n) {
-          throw new DivisionByZeroError();
-        }
-        if (lN === 0n) {
-          values.push({ n: 0n, d: 1n });
-          return;
-        }
-        if (lN === "OVERFLOW" || rN === "OVERFLOW") {
-          values.push(OverflowValue);
-          return;
-        }
-        const g1 = gcd(lN, rN);
-        const lD = left.d;
-        const lC = left.c;
-        const rD = right.d;
-        const g2 = gcd(rD, lD);
-        resN = (lN / g1) * (rD / g2);
-        resD = (lD / g2) * (rN / g1);
-        if (lC !== undefined && right.c === undefined) {
-          resC = lC;
-        }
-        break;
+        values.push(divide(left, right));
+        return;
       }
       case "MOD": {
-        if (rN === 0n) {
-          throw new DivisionByZeroError();
-        }
         if (lN === "OVERFLOW" || rN === "OVERFLOW") {
           values.push(OverflowValue);
           return;
         }
-        const { n, d } = mod({ n: lN, d: left.d }, { n: rN, d: right.d });
-        resN = n;
-        resD = d;
-        break;
+        values.push(mod(left, right));
+        return;
       }
       case "EXP": {
-        if (rN === 0n) {
-          resN = 1n;
-          resD = 1n;
-          break;
-        }
-
-        if (lN === "OVERFLOW") {
-          values.push(OverflowValue);
-          return;
-        }
-
-        const lD = left.d;
-        const lC = left.c;
-
-        if (lN === lD && lC === undefined) {
-          resN = 1n;
-          resD = 1n;
-          break;
-        }
-
-        if (rN === "OVERFLOW") {
-          values.push(OverflowValue);
-          return;
-        }
-
-        const normalizedExponent = simplify(right);
-
-        let exponent = normalizedExponent.n;
-
-        if (exponent === 0n) {
-          resN = 1n;
-          resD = 1n;
-          break;
-        }
-
-        if (lN === 0n) {
-          if (rN < 0) {
-            throw new DivisionByZeroError();
-          }
-          resN = 0n;
-          resD = 1n;
-          break;
-        }
-
-        const exponentD = normalizedExponent.d;
-
-        if (exponentD === 2n) {
-          const basePowerN = lN ** exponent;
-          const basePowerD = lD ** exponent;
-
-          const rootResult = sqrt(
-            { n: basePowerN, d: basePowerD },
-            format === "precise",
-          );
-
-          if (rootResult.n === "OVERFLOW") {
-            values.push(OverflowValue);
-            return;
-          }
-
-          resN = rootResult.n;
-          resD = rootResult.d;
-          resC = rootResult.c;
-          break;
-        }
-
-        if (exponentD !== 1n) {
-          const basePowerN = lN ** exponent;
-          const basePowerD = lD ** exponent;
-
-          const rootResult = nthRoot(
-            { n: basePowerN, d: basePowerD },
-            exponentD,
-            format === "precise",
-          );
-
-          resN = rootResult.n;
-          resD = rootResult.d;
-          resC = rootResult.c;
-          break;
-        }
-
-        let baseN = lN;
-        let baseD = lD;
-
-        // Handling negative exponents: flip the fraction and make exponent positive
-        if (exponent < 0n) {
-          [baseN, baseD] = [baseD, baseN];
-          exponent = -exponent;
-        }
-
-        if (exponent === 1n) {
-          resN = baseN;
-          resD = baseD;
-          if (normalizedExponent.c === undefined) {
-            resC = lC;
-          }
-          break;
-        }
-
-        if (
-          exponent > 1e4 &&
-          (baseN * exponent > 6e6 || baseD * exponent > 6e6)
-        ) {
-          values.push(OverflowValue);
-          return;
-        }
-
-        if (!lC) {
-          resN = baseN ** exponent;
-          resD = baseD ** exponent;
-          break;
-        }
-
-        const c = getConst(lC);
-
-        resN = (baseN * c.n) ** exponent;
-        resD = (baseD * c.d) ** exponent;
-        break;
+        values.push(exponentiate(left, right, format === "precise"));
+        return;
       }
     }
 
-    if (resD > SIMPLIFY_THRESHOLD) {
-      values.push(simplify({ n: resN, d: resD, c: resC }));
-    } else {
-      values.push({ n: resN, d: resD, c: resC });
-    }
+    const value = { n: resN, d: resD, c: resC };
+    values.push(resD > SIMPLIFY_THRESHOLD ? simplify(value) : value);
   };
 
-  const pushOpWithPrecedence = (currentOp: StackOp, pos: number) => {
+  const pushOpWithPrecedence = (currentOp: StackOp, pos: number): void => {
     const isUnary = isUnaryOperation(currentOp);
 
     const isRightAssociative =
@@ -427,9 +261,7 @@ export function evaluate(
     ops.push(currentOp);
   };
 
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]!;
-
+  for (const token of tokens) {
     switch (token.type) {
       case "NUMBER": {
         const frac = token.fraction || "";
@@ -453,7 +285,7 @@ export function evaluate(
             values.push(OverflowValue);
             break;
           }
-          if (expValue >= 0n) {
+          if (expValue >= 0) {
             n *= 10n ** expValue;
           } else {
             d *= 10n ** -expValue;
@@ -521,7 +353,7 @@ export function evaluate(
           break;
         }
 
-        values.push({ n: val.n < 0n ? -val.n : val.n, d: val.d, c: val.c });
+        values.push({ n: val.n < 0 ? -val.n : val.n, d: val.d, c: val.c });
         break;
       }
       case "PLUS": {
