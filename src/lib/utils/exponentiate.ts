@@ -19,9 +19,9 @@ export function exponentiate(
   if (lN === "OVERFLOW") return left;
 
   const lD = left.d;
-  const lC = left.c;
+  const c = left.c;
 
-  if (lN === lD && lC === undefined) return { n: 1n, d: 1n };
+  if (lN === lD && c === undefined) return { n: 1n, d: 1n };
   if (rN === "OVERFLOW") return right;
 
   const normalizedExponent = toSimpleFraction(simplify(right));
@@ -42,39 +42,30 @@ export function exponentiate(
     [baseN, baseD] = [baseD, baseN];
   }
 
-  const exponentD = normalizedExponent.d;
-
-  if (exponentD === 2n) {
-    const basePowerN = baseN ** exponent;
-    const basePowerD = baseD ** exponent;
-
-    return sqrt(
-      { n: basePowerN, d: basePowerD, c: lC, e: lC ? exp : undefined },
-      precise,
-    );
-  }
-
-  if (exponentD !== 1n) {
-    const basePowerN = baseN ** exponent;
-    const basePowerD = baseD ** exponent;
-
-    return nthRoot(
-      { n: basePowerN, d: basePowerD, c: lC, e: lC ? exp : undefined },
-      exponentD,
-      precise,
-    );
-  }
-
-  if (exponent === 1n) {
-    return { n: baseN, d: baseD, c: lC, e: lC ? exp : undefined };
-  }
-
   if (exponent > 1e4 && (baseN * exponent > 6e6 || baseD * exponent > 6e6)) {
     return OverflowValue;
+  }
+
+  const dExp = normalizedExponent.d;
+
+  const e = c ? exp : undefined;
+
+  if (exponent === dExp) {
+    return { n: baseN, d: baseD, c, e };
   }
 
   const n = baseN ** exponent;
   const d = baseD ** exponent;
 
-  return { n, d, c: lC, e: lC ? exp : undefined };
+  const v = { n, d, c, e };
+
+  if (dExp === 2n) {
+    return sqrt(v, precise);
+  }
+
+  if (dExp !== 1n) {
+    return nthRoot(v, dExp, precise);
+  }
+
+  return v;
 }
