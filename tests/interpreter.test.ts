@@ -163,6 +163,12 @@ describe("evaluate", () => {
     expect(calculate("0.1 * 0.2")).toBe("0.02");
   });
 
+  it("should correctly add 2 constants in precise mode", () => {
+    expect(calculate(calculate("e + pi", { format: "precise" }))).toBe(
+      calculate("e + pi"),
+    );
+  });
+
   it("should correctly multiply 2 constants in precise mode", () => {
     expect(calculate(calculate("e * pi", { format: "precise" }))).toBe(
       calculate("e * pi"),
