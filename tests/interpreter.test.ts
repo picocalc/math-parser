@@ -478,6 +478,10 @@ describe("evaluate", () => {
     expect(calculate("1/pi", { format: "precise" })).toBe("1/pi");
   });
 
+  it("should handle exponentiation + addition of a constant in precise mode", () => {
+    expect(calculate("pi^2 + pi^2", { format: "precise" })).toBe("2pi^2");
+  });
+
   it("should handle nth root of a constant in precise mode", () => {
     expect(calculate("(pi^3)^(1/3)", { format: "precise" })).toBe("pi");
     expect(calculate("(pi^6)^(1/3)", { format: "precise" })).toBe("pi^2");

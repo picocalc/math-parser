@@ -6,19 +6,19 @@ import {
   NotImplementedError,
 } from "./errors";
 import type { ParsedToken } from "./parser";
+import { add } from "./utils/add";
 import { ceil } from "./utils/ceil";
 import { getConst } from "./utils/constants";
 import { divide } from "./utils/divide";
 import { exponentiate } from "./utils/exponentiate";
 import { factorial } from "./utils/factorial";
 import { floor } from "./utils/floor";
-import { gcd } from "./utils/gcd";
 import { mod } from "./utils/mod";
 import { multiply } from "./utils/multiply";
 import { simplify, toSimpleFraction } from "./utils/simplify";
 import { sqrt } from "./utils/sqrt";
 import { OverflowValue } from "./utils/types";
-import type { NormalValue, Value, ValueConstant } from "./utils/types";
+import type { NormalValue, Value } from "./utils/types";
 
 const precedence = {
   LPAREN: 0,
@@ -56,10 +56,6 @@ function isUnaryOperation(op: StackOp) {
  * Maximum allowed precision
  */
 const MAX_PRECISION = 50_000;
-/**
- * Threshold to prevent denominators from growing infinitely.
- */
-const SIMPLIFY_THRESHOLD = 10n ** 4000n;
 
 export interface PrecisionOptions {
   format?: "decimal" | "precise";
@@ -155,57 +151,14 @@ export function evaluate(
 
     const left = values.pop()!;
 
-    let resN: bigint;
-    let resD: bigint;
-    let resC: ValueConstant | undefined;
-
     const lN = left.n;
     const rN = right.n;
 
     switch (op) {
       case "ADD":
       case "SUBTRACT": {
-        if (lN === "OVERFLOW" || rN === "OVERFLOW") {
-          values.push(OverflowValue);
-          return;
-        }
-        const lD = left.d;
-        const lC = left.c;
-        const rD = right.d;
-        const rC = right.c;
-        const isSub = op === "SUBTRACT";
-        if (lN === 0n) {
-          resN = isSub ? -rN : rN;
-          resD = rD;
-          resC = rC;
-          break;
-        }
-        if (rN === 0n) {
-          resN = lN;
-          resD = lD;
-          resC = lC;
-          break;
-        }
-        if (lD === rD) {
-          resN = isSub ? lN - rN : lN + rN;
-          resD = lD;
-        } else {
-          // LCM approach to keep numbers smaller
-          const common = gcd(lD, rD);
-          if (common === 1n) {
-            resN = isSub ? lN * rD - rN * lD : lN * rD + rN * lD;
-            resD = lD * rD;
-          } else {
-            const mLeft = rD / common;
-            const mRight = lD / common;
-            resN = isSub ? lN * mLeft - rN * mRight : lN * mLeft + rN * mRight;
-            resD = lD * mLeft;
-          }
-        }
-        if (lC === rC && resN !== 0n) {
-          resC = lC;
-        }
-        break;
+        values.push(add(left, right, op === "SUBTRACT"));
+        return;
       }
       case "MULTIPLY":
       case "IMPLICIT_MUL": {
@@ -229,9 +182,6 @@ export function evaluate(
         return;
       }
     }
-
-    const value = { n: resN, d: resD, c: resC };
-    values.push(resD > SIMPLIFY_THRESHOLD ? simplify(value) : value);
   };
 
   const pushOpWithPrecedence = (currentOp: StackOp, pos: number): void => {
