@@ -1,5 +1,4 @@
-import { getConst } from "#lib/constants";
-
+import { getConst } from "../constants";
 import { DivisionByZeroError } from "../errors";
 import { gcd } from "./gcd";
 import { multiply } from "./multiply";
