@@ -31,7 +31,19 @@ describe("parse", () => {
   });
 
   it("should throw IncompleteExpressionError for operation-only expression", () => {
+    expect(() => calculate("+")).toThrow(ParserError);
+    expect(() => calculate("+")).toThrow(IncompleteExpressionError);
+    expect(() => calculate("-")).toThrow(ParserError);
     expect(() => calculate("-")).toThrow(IncompleteExpressionError);
+  });
+
+  it("should throw IncompleteExpressionError for an unclosed pipe operator", () => {
+    expect(() => calculate("|")).toThrow(ParserError);
+  });
+
+  it("should throw IncompleteExpressionError for bracket-only expression", () => {
+    expect(() => calculate("(")).toThrow(ParserError);
+    expect(() => calculate("(")).toThrow(IncompleteExpressionError);
   });
 
   it("should throw ParserError for leading multiplication", () => {
@@ -54,9 +66,5 @@ describe("parse", () => {
 
   it("should throw ParserError for an unexpected factorial operator", () => {
     expect(() => calculate("!")).toThrow(ParserError);
-  });
-
-  it("should throw ParserError for an unclosed pipe operator", () => {
-    expect(() => calculate("|")).toThrow(ParserError);
   });
 });

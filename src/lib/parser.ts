@@ -211,6 +211,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
     "UNARY_MINUS",
     "FUNC",
     "ABS_OPEN",
+    "LPAREN",
   ];
 
   if (
