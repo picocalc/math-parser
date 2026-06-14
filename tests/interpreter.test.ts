@@ -465,6 +465,11 @@ describe("evaluate", () => {
     expect(calculate("pi^(5/3)", { format: "precise" })).toBe("pi^(5/3)");
     expect(calculate("pi^(3/4)", { format: "precise" })).toBe("pi^(3/4)");
     expect(calculate("sqrt(pi)", { format: "precise" })).toBe("sqrt(pi)");
+    expect(calculate("sqrt(pi) * sqrt(pi)", { format: "precise" })).toBe("pi");
+    expect(calculate("sqrt(pi) ^ 2", { format: "precise" })).toBe("pi");
+    expect(calculate("sqrt(pi) ^ -1", { format: "precise" })).toBe(
+      "1/sqrt(pi)",
+    );
   });
 
   it("should handle multiplying constants in decimal mode", () => {
@@ -483,6 +488,7 @@ describe("evaluate", () => {
     expect(calculate("pi^3 / pi", { format: "precise" })).toBe("pi^2");
     expect(calculate("pi / pi^2", { format: "precise" })).toBe("1/pi");
     expect(calculate("1/pi", { format: "precise" })).toBe("1/pi");
+    expect(calculate("1/sqrt(pi)", { format: "precise" })).toBe("1/sqrt(pi)");
   });
 
   it("should handle exponentiation + addition of a constant in precise mode", () => {

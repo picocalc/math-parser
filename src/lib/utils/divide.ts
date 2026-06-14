@@ -55,7 +55,7 @@ export function divide(left: Value, right: Value): Value {
     nExp = -rE; // Moving from denominator to numerator negates the exponent
   }
 
-  const e = nExp ? { n: nExp } : undefined;
+  const e = nExp ? { n: nExp, d: right.e?.d } : undefined;
 
   return { n, d, c, e };
 }

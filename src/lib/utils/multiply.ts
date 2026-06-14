@@ -1,6 +1,7 @@
+import { add } from "./add";
 import { ZERO } from "./constants";
 import { gcd } from "./gcd";
-import { toSimpleFraction } from "./simplify";
+import { simplify, toSimpleFraction } from "./simplify";
 import type { NormalValue, Value, ValueConstant } from "./types";
 
 export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
@@ -41,8 +42,13 @@ export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
   const bExpN = b.e?.n;
 
   if (aExpN !== undefined && bExpN !== undefined) {
-    expN = aExpN + bExpN;
-  } else if (aExpN !== undefined && bExpN === undefined) {
+    const e = simplify(
+      add({ n: aExpN, d: a.e?.d ?? 1n }, { n: bExpN, d: b.e?.d ?? 1n }),
+    );
+    return { n, d, c, e };
+  }
+
+  if (aExpN !== undefined && bExpN === undefined) {
     expN = aExpN;
   } else if (bExpN !== undefined && aExpN === undefined) {
     expN = bExpN;

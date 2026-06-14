@@ -31,12 +31,14 @@ export function exponentiate(
     return ZERO;
   }
 
-  if (normalizedExp.d >= 100) {
+  const dExp = normalizedExp.d;
+
+  if (dExp >= 100) {
     let baseFloat = Number(lN) / Number(lD);
     if (c) {
       baseFloat *= Number(constants[c]);
     }
-    const expFloat = Number(normalizedExp.n) / Number(normalizedExp.d);
+    const expFloat = Number(exponent) / Number(dExp);
     const resultFloat = baseFloat ** expFloat;
     if (!Number.isFinite(resultFloat)) return OverflowValue;
     const [integerPart, fractionalPart] = resultFloat.toString().split(".");
@@ -62,9 +64,7 @@ export function exponentiate(
     return OverflowValue;
   }
 
-  const dExp = normalizedExp.d;
-
-  const e = c ? { n: eN } : undefined;
+  const e = c ? simplify({ n: eN, d: left.e?.d ?? 1n }) : undefined;
 
   if (exponent === dExp) {
     return { n: baseN, d: baseD, c, e };

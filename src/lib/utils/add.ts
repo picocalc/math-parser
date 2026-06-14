@@ -1,13 +1,13 @@
 import { ZERO } from "./constants";
 import { gcd } from "./gcd";
 import { toSimpleFraction } from "./simplify";
-import type { Value } from "./types";
+import type { NormalValue, Value } from "./types";
 
-export function add(
-  left: Value,
-  right: Value,
+export function add<V extends Value>(
+  left: V,
+  right: V,
   subtract: boolean = false,
-): Value {
+): V | NormalValue {
   const lN = left.n;
   if (lN === "OVERFLOW") return left;
   const rN = right.n;
