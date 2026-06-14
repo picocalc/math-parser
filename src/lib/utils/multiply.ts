@@ -1,5 +1,7 @@
+import { add } from "./add";
 import { ZERO } from "./constants";
 import { gcd } from "./gcd";
+import { simplify, toSimpleFraction } from "./simplify";
 import type { NormalValue, Value, ValueConstant } from "./types";
 
 export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
@@ -14,7 +16,7 @@ export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
   let n: bigint;
   let d: bigint;
   let c: ValueConstant | undefined;
-  let e: bigint | undefined;
+  let expN: bigint | undefined;
 
   if (a.d === 1n && b.d === 1n) {
     n = aN * bN;
@@ -26,23 +28,36 @@ export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
     d = (a.d / g2) * (b.d / g1);
   }
 
+  if (a.c === undefined && b.c === undefined) {
+    return { n, d };
+  }
+
+  const aExpN = a.e?.n;
+  const bExpN = b.e?.n;
+
+  if (a.c === b.c) {
+    const aExpD = a.e?.d ?? 1n;
+    const bExpD = b.e?.d ?? 1n;
+    const e = simplify(
+      add({ n: aExpN ?? 1n, d: aExpD }, { n: bExpN ?? 1n, d: bExpD }),
+    );
+    return { n, d, c: a.c, e };
+  }
+
   if (a.c === undefined && b.c !== undefined) {
     c = b.c;
   } else if (a.c !== undefined && b.c === undefined) {
     c = a.c;
-  } else if (a.c === b.c) {
-    c = a.c;
+  } else {
+    return multiply(toSimpleFraction(a), toSimpleFraction(b));
   }
 
-  if (a.e !== undefined && b.e !== undefined) {
-    e = a.e + b.e;
-  } else if (a.e !== undefined && b.e === undefined) {
-    e = a.e;
-  } else if (b.e !== undefined && a.e === undefined) {
-    e = b.e;
-  } else if (a.c === b.c) {
-    e = (a.e ?? 1n) + (b.e ?? 1n);
+  if (aExpN !== undefined && bExpN === undefined) {
+    expN = aExpN;
+  } else if (bExpN !== undefined && aExpN === undefined) {
+    expN = bExpN;
   }
 
+  const e = expN ? { n: expN } : undefined;
   return { n, d, c, e };
 }

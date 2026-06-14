@@ -1,6 +1,8 @@
 import { DivisionByZeroError } from "../errors";
+import { add } from "./add";
 import { ZERO } from "./constants";
 import { gcd } from "./gcd";
+import { simplify } from "./simplify";
 import { OverflowValue } from "./types";
 import type { Value, ValueConstant } from "./types";
 
@@ -25,7 +27,7 @@ export function divide(left: Value, right: Value): Value {
   const d = (lD / g2) * (rN / g1);
 
   let c: ValueConstant | undefined;
-  let e: bigint | undefined;
+  let nExp: bigint | undefined;
 
   // Handle constants
   if (left.c !== undefined && right.c === undefined) {
@@ -37,23 +39,30 @@ export function divide(left: Value, right: Value): Value {
   }
 
   // Handle exponents (Subtract right from left during division)
-  const lE = left.e ?? (left.c !== undefined ? 1n : undefined);
-  const rE = right.e ?? (right.c !== undefined ? 1n : undefined);
+  const lExpN = left.e?.n ?? (left.c !== undefined ? 1n : undefined);
+  const rExpN = right.e?.n ?? (right.c !== undefined ? 1n : undefined);
 
-  if (lE !== undefined && rE !== undefined) {
-    if (left.c === right.c) {
-      e = lE - rE;
-      // If exponents cancel out completely, drop the constant
-      if (e === 0n) {
-        c = undefined;
-        e = undefined;
-      }
-    }
-  } else if (lE !== undefined) {
-    e = lE;
-  } else if (rE !== undefined) {
-    e = -rE; // Moving from denominator to numerator negates the exponent
+  const lExpD = left.e?.d ?? 1n;
+  const rExpD = right.e?.d ?? 1n;
+
+  if (lExpN !== undefined && rExpN !== undefined && left.c === right.c) {
+    const e = simplify(
+      add({ n: lExpN, d: lExpD }, { n: rExpN, d: rExpD }, true),
+    );
+    return { n, d, c, e };
   }
+
+  let dExp;
+
+  if (lExpN !== undefined) {
+    nExp = lExpN;
+    dExp = lExpD;
+  } else if (rExpN !== undefined) {
+    nExp = -rExpN; // Moving from denominator to numerator negates the exponent
+    dExp = rExpD;
+  }
+
+  const e = nExp ? { n: nExp, d: dExp } : undefined;
 
   return { n, d, c, e };
 }

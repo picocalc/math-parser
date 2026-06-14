@@ -2,6 +2,7 @@ import { DivisionByZeroError } from "../errors";
 import { getConst, ZERO } from "./constants";
 import { gcd } from "./gcd";
 import { multiply } from "./multiply";
+import { nthRoot } from "./nthroot";
 import type { NormalValue } from "./types";
 
 /**
@@ -20,18 +21,22 @@ function simplify(v: NormalValue): NormalValue {
  * Resolves any constants and exponents to return a simple fraction.
  */
 function toSimpleFraction(val: NormalValue): NormalValue {
-  if (!val.c) {
-    return { n: val.n, d: val.d };
-  }
+  if (!val.c) return val;
 
   const c = getConst(val.c);
-  const e = val.e ?? 1n;
-  const absE = e < 0 ? -e : e;
+  const expN = val.e?.n ?? 1n;
+  const expD = val.e?.d ?? 1n;
 
-  const poweredConstant: NormalValue = {
-    n: e < 0 ? c.d ** absE : c.n ** absE,
-    d: e < 0 ? c.n ** absE : c.d ** absE,
+  const absExpN = expN < 0 ? -expN : expN;
+
+  let poweredConstant: NormalValue = {
+    n: expN < 0 ? c.d ** absExpN : c.n ** absExpN,
+    d: expN < 0 ? c.n ** absExpN : c.d ** absExpN,
   };
+
+  if (expD !== 1n) {
+    poweredConstant = nthRoot(poweredConstant, expD, true);
+  }
 
   return multiply(poweredConstant, { n: val.n, d: val.d });
 }

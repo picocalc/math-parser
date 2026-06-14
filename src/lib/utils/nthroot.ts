@@ -1,4 +1,4 @@
-import { DivisionByZeroError, InterpreterError } from "../errors";
+import { DivisionByZeroError, NotImplementedError } from "../errors";
 import { ZERO } from "./constants";
 import { simplify } from "./simplify";
 import type { NormalValue } from "./types";
@@ -8,8 +8,8 @@ import type { NormalValue } from "./types";
  */
 function iNthRoot(value: bigint, n: bigint): bigint {
   if (value < 0 && n % 2n === 0n) {
-    throw new InterpreterError(
-      `Even (${n}-th) root of negative not supported.`,
+    throw new NotImplementedError(
+      `Even (${n}th) root of negative numbers is not implemented yet.`,
     );
   }
   if (value < 0) return -iNthRoot(-value, n); // Handle odd roots of negatives
@@ -48,8 +48,8 @@ export function nthRoot(
   // Handle negatives: Error if root is even, recurse if root is odd
   if (v.n < 0) {
     if (n % 2n === 0n) {
-      throw new InterpreterError(
-        `Even (${n}-th) root of negative not supported.`,
+      throw new NotImplementedError(
+        `Even (${n}th) root of negative numbers is not implemented yet.`,
       );
     }
     // For odd roots: nthRoot(-x) = -nthRoot(x)
@@ -68,14 +68,9 @@ export function nthRoot(
   if (precise) {
     const rootN = iNthRoot(v.n, n);
     const rootD = iNthRoot(v.d, n);
-
     if (rootN ** n === v.n && rootD ** n === v.d) {
-      return simplify({
-        n: rootN,
-        d: rootD,
-        c: v.c,
-        e: v.e ? v.e / n : undefined,
-      });
+      const e = simplify({ n: v.e?.n ?? 1n, d: (v.e?.d ?? 1n) * n });
+      return simplify({ n: rootN, d: rootD, c: v.c, e });
     }
   }
 

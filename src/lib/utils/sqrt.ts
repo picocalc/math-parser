@@ -1,4 +1,4 @@
-import { InterpreterError } from "../errors";
+import { NotImplementedError } from "../errors";
 import { ZERO } from "./constants";
 import { simplify } from "./simplify";
 import type { Value } from "./types";
@@ -8,7 +8,9 @@ import type { Value } from "./types";
  */
 function isqrt(value: bigint): bigint {
   if (value < 0) {
-    throw new InterpreterError("Square root of negative not supported yet.");
+    throw new NotImplementedError(
+      "Square root of negative numbers is not implemented yet.",
+    );
   }
   if (value < 2n) return value;
 
@@ -41,22 +43,20 @@ export function sqrt(
   if (v.n === "OVERFLOW") return v;
 
   if (v.n < 0) {
-    throw new InterpreterError("Square root of negative not supported yet.");
+    throw new NotImplementedError(
+      "Square root of negative numbers is not implemented yet.",
+    );
   }
 
   if (v.n === 0n) return ZERO;
 
   if (precise) {
-    const [nIsSquare, nRoot] = isPerfectSquare(v.n);
-    const [dIsSquare, dRoot] = isPerfectSquare(v.d);
+    const [nIsSquare, n] = isPerfectSquare(v.n);
+    const [dIsSquare, d] = isPerfectSquare(v.d);
 
     if (nIsSquare && dIsSquare) {
-      return simplify({
-        n: nRoot,
-        d: dRoot,
-        c: v.c,
-        e: v.e ? v.e / 2n : undefined,
-      });
+      const e = simplify({ n: v.e?.n ?? 1n, d: (v.e?.d ?? 1n) * 2n });
+      return simplify({ n, d, c: v.c, e });
     }
   }
 
@@ -65,8 +65,8 @@ export function sqrt(
   const scaleFactor = 10n ** BigInt(precisionDigits * 2);
   const scaledNumerator = (v.n * scaleFactor) / v.d;
 
-  const rootN = isqrt(scaledNumerator);
-  const rootD = 10n ** BigInt(precisionDigits);
+  const n = isqrt(scaledNumerator);
+  const d = 10n ** BigInt(precisionDigits);
 
-  return simplify({ n: rootN, d: rootD });
+  return simplify({ n, d });
 }

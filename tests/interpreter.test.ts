@@ -163,6 +163,31 @@ describe("evaluate", () => {
     expect(calculate("0.1 * 0.2")).toBe("0.02");
   });
 
+  function expectToPreserveCorrectness(expression: string) {
+    expect(calculate(calculate(expression, { format: "precise" }))).toBe(
+      calculate(expression),
+    );
+  }
+
+  it("should correctly add 2 constants in precise mode", () => {
+    expectToPreserveCorrectness("e + pi");
+    expectToPreserveCorrectness("e + 1");
+    expectToPreserveCorrectness("1 + pi");
+    expectToPreserveCorrectness("e^2 + pi");
+    expectToPreserveCorrectness("e + pi^2");
+    expectToPreserveCorrectness("e^2 + pi^2");
+    expectToPreserveCorrectness("e + e^2");
+    expectToPreserveCorrectness("pi^2 + pi");
+  });
+
+  it("should correctly multiply 2 constants in precise mode", () => {
+    expectToPreserveCorrectness("e * pi");
+  });
+
+  it("should correctly exponentiate 2 constants in precise mode", () => {
+    expectToPreserveCorrectness("e ^ pi");
+  });
+
   it("should correctly multiply a whole number with a decimal", () => {
     expect(calculate("2 * 0.5")).toBe("1");
     expect(calculate("0.3 * 7")).toBe("2.1");
@@ -248,6 +273,7 @@ describe("evaluate", () => {
     expect(calculate("(1/3)^pi", decimals(12))).toBe("0.031701467835");
     expect(calculate("e^pi", decimals(12))).toBe("23.140692632779");
     expect(calculate("pi^(1/3)", decimals(15))).toBe("1.464591887561523");
+    expect(calculate("sqrt(pi)", decimals(10))).toBe("1.7724538509");
   });
 
   it("should handle a simple remainder division", () => {
@@ -304,6 +330,8 @@ describe("evaluate", () => {
   it("should handle absolute values using abs function", () => {
     expect(calculate("abs(2)")).toBe("2");
     expect(calculate("abs(-2)")).toBe("2");
+    expect(calculate("abs 2")).toBe("2");
+    expect(calculate("abs -2")).toBe("2");
   });
 
   it("should handle floor function", () => {
@@ -331,6 +359,8 @@ describe("evaluate", () => {
     expect(calculate("floor(e^2)", { format: "precise" })).toBe("7");
     expect(calculate("floor(1/pi)", { format: "precise" })).toBe("0");
     expect(calculate("floor(1/e)", { format: "precise" })).toBe("0");
+    expect(calculate("floor(sqrt(pi))", { format: "precise" })).toBe("1");
+    expect(calculate("floor(sqrt(e))", { format: "precise" })).toBe("1");
   });
 
   it("should handle ceil function in precise mode", () => {
@@ -342,12 +372,15 @@ describe("evaluate", () => {
     expect(calculate("ceil(e^2)", { format: "precise" })).toBe("8");
     expect(calculate("ceil(1/pi)", { format: "precise" })).toBe("1");
     expect(calculate("ceil(1/e)", { format: "precise" })).toBe("1");
+    expect(calculate("ceil(sqrt(pi))", { format: "precise" })).toBe("2");
+    expect(calculate("ceil(sqrt(e))", { format: "precise" })).toBe("2");
   });
 
   it("should handle sqrt function", () => {
     expect(calculate("sqrt(0)")).toBe("0");
     expect(calculate("sqrt(1)")).toBe("1");
     expect(calculate("sqrt(16)")).toBe("4");
+    expect(calculate("sqrt 16")).toBe("4");
   });
 
   it("should handle square root when using exponentiation", () => {
@@ -429,6 +462,23 @@ describe("evaluate", () => {
     expect(calculate("abs(pi^2)", { format: "precise" })).toBe("pi^2");
   });
 
+  it("should handle exponentiation of a constant to a fraction in precise mode", () => {
+    expect(calculate("pi^(1/3)", { format: "precise" })).toBe("pi^(1/3)");
+    expect(calculate("pi^(2/3)", { format: "precise" })).toBe("pi^(2/3)");
+    expect(calculate("pi^(3/5)", { format: "precise" })).toBe("pi^(3/5)");
+    expect(calculate("pi^(5/3)", { format: "precise" })).toBe("pi^(5/3)");
+    expect(calculate("pi^(5/2)", { format: "precise" })).toBe("pi^(5/2)");
+    expect(calculate("pi^(3/2)", { format: "precise" })).toBe("pi^(3/2)");
+    expect(calculate("pi^(3/4)", { format: "precise" })).toBe("pi^(3/4)");
+    expect(calculate("sqrt(pi)", { format: "precise" })).toBe("sqrt(pi)");
+    expect(calculate("sqrt(pi) * sqrt(pi)", { format: "precise" })).toBe("pi");
+    expect(calculate("sqrt(pi) * pi", { format: "precise" })).toBe("pi^(3/2)");
+    expect(calculate("sqrt(pi) ^ 2", { format: "precise" })).toBe("pi");
+    expect(calculate("sqrt(pi) ^ -1", { format: "precise" })).toBe(
+      "1/sqrt(pi)",
+    );
+  });
+
   it("should handle multiplying constants in decimal mode", () => {
     expect(calculate("pi * pi", { maxDecimals: 4 })).toBe("9.8696");
     expect(calculate("2 * pi * pi", { maxDecimals: 4 })).toBe("19.7392");
@@ -445,6 +495,21 @@ describe("evaluate", () => {
     expect(calculate("pi^3 / pi", { format: "precise" })).toBe("pi^2");
     expect(calculate("pi / pi^2", { format: "precise" })).toBe("1/pi");
     expect(calculate("1/pi", { format: "precise" })).toBe("1/pi");
+    expect(calculate("1/sqrt(pi)", { format: "precise" })).toBe("1/sqrt(pi)");
+    expect(calculate("pi / sqrt(pi)", { format: "precise" })).toBe("sqrt(pi)");
+    expect(calculate("sqrt(pi) / pi", { format: "precise" })).toBe(
+      "1/sqrt(pi)",
+    );
+    expect(calculate("sqrt(pi) / 1", { format: "precise" })).toBe("sqrt(pi)");
+    expect(calculate("sqrt(pi) / 2", { format: "precise" })).toBe("sqrt(pi)/2");
+    expect(calculate("pi / 1", { format: "precise" })).toBe("pi");
+    expect(calculate("pi / 2", { format: "precise" })).toBe("pi/2");
+  });
+
+  it("should handle exponentiation + addition of a constant in precise mode", () => {
+    expect(calculate("0 + pi^2", { format: "precise" })).toBe("pi^2");
+    expect(calculate("pi^2 + 0", { format: "precise" })).toBe("pi^2");
+    expect(calculate("pi^2 + pi^2", { format: "precise" })).toBe("2pi^2");
   });
 
   it("should handle nth root of a constant in precise mode", () => {
@@ -626,6 +691,20 @@ describe.skipIf(win32)("evaluate - large operations", () => {
     const getTest = (numbers: number) => {
       const expression = "1 * ".repeat(numbers) + "1";
       it(`should handle multiplying ${numbers} numbers`, () => {
+        expect(calculate(expression)).toBe("1");
+      }, 2000);
+    };
+    getTest(100);
+    getTest(1000);
+    getTest(10_000);
+    getTest(100_000);
+    getTest(1000_000);
+  });
+
+  describe("exponentiating a lot of numbers", () => {
+    const getTest = (numbers: number) => {
+      const expression = "1 ^ ".repeat(numbers) + "1";
+      it(`should handle exponentiating ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe("1");
       }, 2000);
     };

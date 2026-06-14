@@ -1,5 +1,5 @@
 import { DivisionByZeroError } from "../errors";
-import { ZERO } from "./constants";
+import { ZERO, ONE, constants } from "./constants";
 import { nthRoot } from "./nthroot";
 import { simplify, toSimpleFraction } from "./simplify";
 import { sqrt } from "./sqrt";
@@ -12,15 +12,15 @@ export function exponentiate(
   precise: boolean,
 ): Value {
   const rN = right.n;
-  const lN = left.n;
+  if (rN === 0n) return ONE;
 
-  if (rN === 0n) return { n: 1n, d: 1n };
+  const lN = left.n;
   if (lN === "OVERFLOW") return left;
 
   const lD = left.d;
   const c = left.c;
 
-  if (lN === lD && c === undefined) return { n: 1n, d: 1n };
+  if (lN === lD && c === undefined) return ONE;
   if (rN === "OVERFLOW") return right;
 
   const normalizedExp = toSimpleFraction(simplify(right));
@@ -31,21 +31,26 @@ export function exponentiate(
     return ZERO;
   }
 
-  if (normalizedExp.d >= 100) {
-    const baseFloat = Number(lN) / Number(lD);
-    const expFloat = Number(normalizedExp.n) / Number(normalizedExp.d);
+  const dExp = normalizedExp.d;
+
+  if (dExp >= 100) {
+    let baseFloat = Number(lN) / Number(lD);
+    if (c) {
+      baseFloat *= Number(constants[c]);
+    }
+    const expFloat = Number(exponent) / Number(dExp);
     const resultFloat = baseFloat ** expFloat;
     if (!Number.isFinite(resultFloat)) return OverflowValue;
     const [integerPart, fractionalPart] = resultFloat.toString().split(".");
     if (!fractionalPart) {
-      return simplify({ n: BigInt(integerPart!), d: 1n, c });
+      return simplify({ n: BigInt(integerPart!), d: 1n });
     }
     const denominator = 10n ** BigInt(fractionalPart.length);
     const numerator = BigInt(integerPart + fractionalPart);
-    return simplify({ n: numerator, d: denominator, c });
+    return simplify({ n: numerator, d: denominator });
   }
 
-  const exp = (left.e ?? 1n) * exponent;
+  const eN = (left.e?.n ?? 1n) * exponent;
 
   let baseN = lN;
   let baseD = lD;
@@ -59,9 +64,7 @@ export function exponentiate(
     return OverflowValue;
   }
 
-  const dExp = normalizedExp.d;
-
-  const e = c ? exp : undefined;
+  const e = c ? simplify({ n: eN, d: left.e?.d ?? 1n }) : undefined;
 
   if (exponent === dExp) {
     return { n: baseN, d: baseD, c, e };

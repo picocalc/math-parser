@@ -11,7 +11,7 @@ export class GenericMathErrror extends Error {
   }
 }
 
-export class InterpreterError extends GenericMathErrror {
+class InterpreterError extends GenericMathErrror {
   constructor(message: string, pos?: number) {
     super("InterpreterError", message, pos);
   }
@@ -22,6 +22,12 @@ export class MaximumPrecisionError extends InterpreterError {
     super(
       `Exceeded maximum precision of ${maxPrecision} digits (${precision})`,
     );
+  }
+}
+
+export class NotImplementedError extends InterpreterError {
+  constructor(message: string, pos?: number) {
+    super(message, pos);
   }
 }
 
@@ -43,20 +49,8 @@ export class EmptyExpressionError extends InterpreterError {
   }
 }
 
-export class UnexpectedEndOfExpressionError extends InterpreterError {
-  constructor() {
-    super("Unexpected end of expression");
-  }
-}
-
 export class MismatchedParenthesisError extends InterpreterError {
   constructor(pos: number, message: string = "Mismatched parenthesis") {
     super(message, pos);
-  }
-}
-
-export class InsufficientOperandsError extends InterpreterError {
-  constructor(pos?: number) {
-    super("Insufficient operands for operation", pos);
   }
 }
