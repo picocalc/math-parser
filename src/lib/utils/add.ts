@@ -13,15 +13,17 @@ export function add(
 
   const rD = right.d;
   const rC = right.c;
+  const rE = right.e;
 
-  if (lN === 0n) return { n: subtract ? -rN : rN, d: rD, c: rC };
+  if (lN === 0n) return { n: subtract ? -rN : rN, d: rD, c: rC, e: rE };
 
   const lD = left.d;
   const lC = left.c;
+  const lE = left.e;
 
-  if (rN === 0n) return { n: lN, d: lD, c: lC };
+  if (rN === 0n) return { n: lN, d: lD, c: lC, e: lE };
 
-  let n, d, c;
+  let n, d, c, e;
 
   if (lD === rD) {
     n = subtract ? lN - rN : lN + rN;
@@ -40,6 +42,9 @@ export function add(
   }
   if (lC === rC && n !== 0n) {
     c = lC;
+    if (lE?.n === rE?.n) {
+      e = lE;
+    }
   }
-  return { n, d, c };
+  return { n, d, c, e };
 }

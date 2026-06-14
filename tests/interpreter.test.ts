@@ -479,6 +479,8 @@ describe("evaluate", () => {
   });
 
   it("should handle exponentiation + addition of a constant in precise mode", () => {
+    expect(calculate("0 + pi^2", { format: "precise" })).toBe("pi^2");
+    expect(calculate("pi^2 + 0", { format: "precise" })).toBe("pi^2");
     expect(calculate("pi^2 + pi^2", { format: "precise" })).toBe("2pi^2");
   });
 
