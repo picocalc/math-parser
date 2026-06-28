@@ -197,6 +197,7 @@ describe("evaluate", () => {
   });
 
   it("should not throw MaximumPrecisionError for big scale", () => {
+    // oxlint-disable-next-line prefer-template
     const bigDecimal = "0." + "0".repeat(20_000) + "1";
     expect(() => calculate(bigDecimal)).not.toThrow(MaximumPrecisionError);
   });
@@ -653,8 +654,10 @@ describe("evaluate - error handling", () => {
   });
 
   it("should throw MaximumPrecisionError for very large scale", () => {
+    // oxlint-disable-next-line prefer-template
     const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
+    // oxlint-disable-next-line prefer-template
     const bigNumber = "1" + "0".repeat(100_000);
     expect(() => calculate(`1e${bigNumber}`)).toThrow(MaximumPrecisionError);
   }, 200);
@@ -694,6 +697,7 @@ describe("evaluate - error handling", () => {
 describe.skipIf(win32)("evaluate - large operations", () => {
   describe("adding a lot of numbers", () => {
     const getTest = (numbers: number) => {
+      // oxlint-disable-next-line prefer-template
       const expression = "1 + ".repeat(numbers) + "0";
       it(`should handle adding ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe(`${numbers}`);
@@ -708,6 +712,7 @@ describe.skipIf(win32)("evaluate - large operations", () => {
 
   describe("multiplying a lot of numbers", () => {
     const getTest = (numbers: number) => {
+      // oxlint-disable-next-line prefer-template
       const expression = "1 * ".repeat(numbers) + "1";
       it(`should handle multiplying ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe("1");
@@ -722,6 +727,7 @@ describe.skipIf(win32)("evaluate - large operations", () => {
 
   describe("exponentiating a lot of numbers", () => {
     const getTest = (numbers: number) => {
+      // oxlint-disable-next-line prefer-template
       const expression = "1 ^ ".repeat(numbers) + "1";
       it(`should handle exponentiating ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe("1");
@@ -736,6 +742,7 @@ describe.skipIf(win32)("evaluate - large operations", () => {
 
   describe("adding and multiplying a lot of numbers", () => {
     const getTest = (numbers: number) => {
+      // oxlint-disable-next-line prefer-template
       const expression = "1 * 1 + ".repeat(numbers) + "0";
       it(`should handle adding and multiplying ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe(`${numbers}`);
@@ -750,6 +757,7 @@ describe.skipIf(win32)("evaluate - large operations", () => {
 
   describe("a lot of parentheses", () => {
     const getTest = (n: number) => {
+      // oxlint-disable-next-line prefer-template
       const expression = "(".repeat(n) + "0" + ")".repeat(n);
       it(`should handle ${n} parentheses`, () => {
         expect(() => calculate(expression)).not.toThrow();
@@ -764,7 +772,9 @@ describe.skipIf(win32)("evaluate - large operations", () => {
   });
 
   it("should not throw MaximumPrecisionError for adding big scales", () => {
+    // oxlint-disable-next-line prefer-template
     const hugeDecimal1 = "0." + "0".repeat(5_000) + "1";
+    // oxlint-disable-next-line prefer-template
     const hugeDecimal2 = "0." + "0".repeat(10_000) + "1";
     expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).not.toThrow(
       MaximumPrecisionError,
