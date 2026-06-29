@@ -56,6 +56,11 @@ interface LexerOptions {
 }
 
 /**
+ * Maximum allowed expression length
+ */
+const MAX_EXPRESSION_LENGTH = 75_000_000;
+
+/**
  * Simple lexer (tokenizer).
  */
 export function tokenize(
@@ -66,6 +71,13 @@ export function tokenize(
   const tokens: Token[] = [];
   let index = 0;
   const length = expression.length;
+
+  if (length > MAX_EXPRESSION_LENGTH) {
+    throw new LexerError(
+      `Expression length (${length}) exceeds the maximum allowed limit of ${MAX_EXPRESSION_LENGTH}`,
+      0,
+    );
+  }
 
   while (index < length) {
     const ch = expression[index]!;
@@ -80,34 +92,31 @@ export function tokenize(
       let whole = "";
       let fraction: string | undefined = undefined;
       let exponent: string | undefined = undefined;
+      const startIdx = index;
 
       if (ch === decimalSeparator) {
         whole = "0";
         index++;
         const fracStart = index;
-        let fracBuffer = "";
         while (index < length && isDigit(expression[index])) {
-          fracBuffer += expression[index];
           index++;
         }
         if (index === fracStart) {
           throw new LexerError("Expected digit after decimal separator", index);
         }
-        fraction = fracBuffer;
+        fraction = expression.slice(fracStart, index);
       } else {
         while (index < length && isDigit(expression[index])) {
-          whole += expression[index];
           index++;
         }
+        whole = expression.slice(startIdx, index);
         if (index < length && expression[index] === decimalSeparator) {
           index++;
-          let fracBuffer = "";
           const fracStart = index;
           while (index < length && isDigit(expression[index])) {
-            fracBuffer += expression[index];
             index++;
           }
-          fraction = index === fracStart ? "0" : fracBuffer;
+          fraction = expression.slice(fracStart, index);
         }
       }
 

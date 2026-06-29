@@ -57,6 +57,16 @@ function isUnaryOperation(op: StackOp) {
  */
 const MAX_PRECISION = 50_000;
 
+/**
+ * Maximum allowed factorial
+ */
+const MAX_FACTORIAL = 20_000;
+
+/**
+ * Maximum allowed exponent for scientific number notation
+ */
+const MAX_SCIENTIFIC_NUMBER_EXPONENT = 3e5;
+
 export interface PrecisionOptions {
   format?: "decimal" | "precise";
   maxDecimals?: number;
@@ -141,7 +151,7 @@ export function evaluate(
           pos,
         );
       }
-      if (reduced.n >= 4e5) {
+      if (reduced.n >= MAX_FACTORIAL) {
         values.push(OverflowValue);
         return;
       }
@@ -222,7 +232,7 @@ export function evaluate(
             );
           }
           const expValue = BigInt(token.exponent);
-          if (expValue > 2e6) {
+          if (expValue > MAX_SCIENTIFIC_NUMBER_EXPONENT) {
             values.push(OverflowValue);
             break;
           }
@@ -235,7 +245,7 @@ export function evaluate(
         if (d === 1n) {
           values.push({ n, d: 1n });
         } else {
-          values.push(simplify({ n, d }));
+          values.push({ n, d });
         }
         break;
       }

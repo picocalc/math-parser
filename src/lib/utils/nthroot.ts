@@ -1,4 +1,5 @@
-import { DivisionByZeroError, NotImplementedError } from "../errors";
+import { DivisionByZeroError, NotImplementedError } from "#lib/errors";
+
 import { ZERO } from "./constants";
 import { simplify } from "./simplify";
 import type { NormalValue } from "./types";
@@ -17,7 +18,7 @@ function iNthRoot(value: bigint, n: bigint): bigint {
   if (n === 1n) return value;
 
   // Initial guess: 2^(bits/n) is a good starting point to save iterations
-  let x = 1n << (BigInt(value.toString(2).length) / n + 1n);
+  let x = 1n << (BigInt.bitLength(value) / n + 1n);
 
   const nMinus1 = n - 1n;
 
