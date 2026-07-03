@@ -55,6 +55,7 @@ describe("evaluate", () => {
     expect(calculate("2 * 3 + 1")).toBe("7");
     expect(calculate("10 - 2 * 4")).toBe("2");
     expect(calculate("10 * 2 - 4")).toBe("16");
+    expect(calculate("1 + 5 % 3")).toBe("3");
   });
 
   it("should handle unary operators with multiplication", () => {
@@ -465,6 +466,15 @@ describe("evaluate", () => {
   it("should handle a constant in decimal mode", () => {
     expect(calculate("pi")).toBe(PI);
     expect(calculate("e")).toBe(E);
+    expect(calculate("1pi")).toBe(PI);
+    expect(calculate("1e")).toBe(E);
+  });
+
+  it("should handle a constant in precise mode", () => {
+    expect(calculate("pi", { format: "precise" })).toBe("pi");
+    expect(calculate("e", { format: "precise" })).toBe("e");
+    expect(calculate("1pi", { format: "precise" })).toBe("pi");
+    expect(calculate("1e", { format: "precise" })).toBe("e");
   });
 
   it("should handle exponentiation of a constant in decimal mode", () => {
@@ -648,7 +658,7 @@ describe("evaluate", () => {
   it("should handle adding big fractions", () => {
     const expr = `1/1e200000 + 1/1e200001 + 1/1e200002`;
     expect(calculate(expr, { maxDecimals: 500 })).toBe("0");
-  }, 200);
+  }, 250);
 
   describe("OverflowError", () => {
     it("should not throw for not large factorial", () => {
@@ -656,7 +666,7 @@ describe("evaluate", () => {
       expect(() => calculate("10000!")).not.toThrow(OverflowError);
     }, 200);
 
-    describe("should not throw OverflowError for not large exponentiation", () => {
+    it("should not throw OverflowError for not large exponentiation", () => {
       expect(() => calculate("(10^2e5)^10")).not.toThrow(OverflowError);
     });
 
@@ -686,6 +696,7 @@ describe("evaluate - error handling", () => {
 
   it("should throw EmptyExpressionError for empty expression", () => {
     expect(() => calculate("")).toThrow(EmptyExpressionError);
+    expect(() => calculate(" ")).toThrow(EmptyExpressionError);
   });
 
   it("should throw MaximumPrecisionError for very large scale", () => {

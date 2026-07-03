@@ -2,74 +2,42 @@ import { add } from "./add";
 import { ZERO } from "./constants";
 import { gcd } from "./gcd";
 import { simplify, toSimpleFraction } from "./simplify";
-import type { NormalValue, Value, ValueConstant } from "./types";
+import type { NormalValue, Value } from "./types";
 
 export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
   const aN = a.n;
   const bN = b.n;
 
   if (aN === 0n || bN === 0n) return ZERO;
-
   if (aN === "OVERFLOW") return a;
   if (bN === "OVERFLOW") return b;
 
-  let n: bigint;
-  let d: bigint;
-  let c: ValueConstant | undefined;
-  let expN: bigint | undefined;
-  let expD: bigint | undefined;
+  const { d: aD, c: aC, e: aE } = a;
+  const { d: bD, c: bC, e: bE } = b;
 
-  if (a.d === 1n && b.d === 1n) {
-    n = aN * bN;
-    d = 1n;
-  } else {
-    const g1 = gcd(aN, b.d);
-    const g2 = gcd(bN, a.d);
-    n = (aN / g1) * (bN / g2);
-    d = (a.d / g2) * (b.d / g1);
-  }
+  const g1 = gcd(aN, bD);
+  const g2 = gcd(bN, aD);
+  const n = (aN / g1) * (bN / g2);
+  const d = (aD / g2) * (bD / g1);
 
-  if (a.c === undefined && b.c === undefined) {
-    return { n, d };
-  }
+  if (aC === undefined && bC === undefined) return { n, d };
 
-  const aExpN = a.e?.n;
-  const bExpN = b.e?.n;
-
-  const aExpD = a.e?.d;
-  const bExpD = b.e?.d;
-
-  if (a.c === b.c) {
+  if (aC === bC) {
     const e = simplify(
       add(
-        { n: aExpN ?? 1n, d: aExpD ?? 1n },
-        { n: bExpN ?? 1n, d: bExpD ?? 1n },
+        { n: aE?.n ?? 1n, d: aE?.d ?? 1n },
+        { n: bE?.n ?? 1n, d: bE?.d ?? 1n },
       ),
     );
-    return { n, d, c: a.c, e };
+    return { n, d, c: aC, e };
   }
 
-  if (a.c === undefined && b.c !== undefined) {
-    c = b.c;
-  } else if (a.c !== undefined && b.c === undefined) {
-    c = a.c;
-  } else {
+  if (aC !== undefined && bC !== undefined) {
     return multiply(toSimpleFraction(a), toSimpleFraction(b));
   }
 
-  if (aExpN !== undefined && bExpN === undefined) {
-    expN = aExpN;
-  } else if (bExpN !== undefined && aExpN === undefined) {
-    expN = bExpN;
-  }
-
-  if (aExpD !== undefined && bExpD === undefined) {
-    expD = aExpD;
-  } else if (bExpD !== undefined && aExpD === undefined) {
-    expD = bExpD;
-  }
-
-  const e = expN ? { n: expN, d: expD } : undefined;
+  const c = aC ?? bC;
+  const e = aE ?? bE;
 
   return { n, d, c, e };
 }

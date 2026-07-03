@@ -68,35 +68,26 @@ export function exponentiate(
   }
 
   const baseNDigits = BigInt.bitLength(baseN);
-  const baseDDigits = BigInt.bitLength(baseN);
+  const baseDDigits = BigInt.bitLength(baseD);
 
   if (
     baseNDigits * exponent > MAX_EXPONENT_RESULT_DIGITS ||
     baseDDigits * exponent > MAX_EXPONENT_RESULT_DIGITS ||
-    ((baseNDigits > 5000 || baseDDigits > 5000) && exponent > 10) ||
-    (exponent > 1e4 && (baseN * exponent > 6e6 || baseD * exponent > 6e6))
+    ((baseNDigits > 5000 || baseDDigits > 5000) && exponent > 10)
   ) {
     return OverflowValue;
   }
 
   const e = c ? simplify({ n: eN, d: left.e?.d ?? 1n }) : undefined;
 
-  if (exponent === dExp) {
-    return { n: baseN, d: baseD, c, e };
-  }
+  if (dExp === exponent) return { n: baseN, d: baseD, c, e };
 
   const n = baseN ** exponent;
   const d = baseD ** exponent;
 
   const v = { n, d, c, e };
 
-  if (dExp === 2n) {
-    return sqrt(v, precise);
-  }
-
-  if (dExp !== 1n) {
-    return nthRoot(v, dExp, precise);
-  }
-
-  return v;
+  if (dExp === 1n) return v;
+  if (dExp === 2n) return sqrt(v, precise);
+  return nthRoot(v, dExp, precise);
 }
