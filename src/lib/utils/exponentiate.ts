@@ -29,6 +29,11 @@ export function exponentiate(
   if (lN === lD && c === undefined) return ONE;
   if (rN === "OVERFLOW") return right;
 
+  if (lN === -lD && c === undefined) {
+    if (rN % 2n) return { n: -1n, d: 1n };
+    return ONE;
+  }
+
   const normalizedExp = toSimpleFraction(simplify(right));
   let exponent = normalizedExp.n;
 
@@ -41,16 +46,12 @@ export function exponentiate(
 
   if (dExp >= 100) {
     let baseFloat = Number(lN) / Number(lD);
-    if (c) {
-      baseFloat *= Number(constants[c]);
-    }
+    if (c) baseFloat *= Number(constants[c]);
     const expFloat = Number(exponent) / Number(dExp);
     const resultFloat = baseFloat ** expFloat;
     if (!Number.isFinite(resultFloat)) return OverflowValue;
     const [integerPart, fractionalPart] = resultFloat.toString().split(".");
-    if (!fractionalPart) {
-      return simplify({ n: BigInt(integerPart!), d: 1n });
-    }
+    if (!fractionalPart) return simplify({ n: BigInt(integerPart!), d: 1n });
     const denominator = 10n ** BigInt(fractionalPart.length);
     const numerator = BigInt(integerPart + fractionalPart);
     return simplify({ n: numerator, d: denominator });

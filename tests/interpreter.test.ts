@@ -619,6 +619,20 @@ describe("evaluate", () => {
     expect(calculate("|-e|", { format: "precise" })).toBe("e");
   });
 
+  it("should handle exponentiation of -1 to a decimal exponent", () => {
+    expect(calculate("(-1) ^ (2/3)")).toBe("1");
+    expect(calculate("(-1) ^ .4")).toBe("1");
+    expect(calculate("(-1) ^ (1/3)")).toBe("-1");
+    expect(calculate("(-1) ^ .2")).toBe("1");
+  });
+
+  it("should handle exponentiation of -1 to a reasonable exponent", () => {
+    expect(calculate("(-1) ^ (10 ^ 50)")).toBe("1");
+    expect(calculate("(-1) ^ 1e50")).toBe("1");
+    expect(calculate("(-1) ^ (10 ^ 5000)")).toBe("1");
+    expect(calculate("(-1) ^ 1e5000")).toBe("1");
+  });
+
   it("should handle adding big fractions", () => {
     const expr = `1/1e200000 + 1/1e200001 + 1/1e200002`;
     expect(calculate(expr, { maxDecimals: 500 })).toBe("0");
