@@ -1,10 +1,10 @@
 import { DivisionByZeroError } from "#lib/errors";
+import type { NormalValue } from "#lib/types";
 
 import { getConst, ZERO } from "./constants";
 import { gcd } from "./gcd";
 import { multiply } from "./multiply";
 import { nthRoot } from "./nthroot";
-import type { NormalValue } from "./types";
 
 /**
  * Reduces a fraction to its simplest form.
@@ -38,7 +38,7 @@ function toSimpleFraction(val: NormalValue): NormalValue {
   };
 
   if (expD !== 1n) {
-    poweredConstant = nthRoot(poweredConstant, expD, true);
+    poweredConstant = nthRoot(poweredConstant, expD, { format: "precise" });
   }
 
   return multiply(poweredConstant, { n: val.n, d: val.d });

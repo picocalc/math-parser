@@ -166,6 +166,32 @@ describe("evaluate", () => {
     expect(calculate("0.1 * 0.2")).toBe("0.02");
   });
 
+  it("should correctly handle rounding modes", () => {
+    expect(calculate("2/3", { maxDecimals: 3 })).toBe("0.667");
+    expect(calculate("2/3", { roundingMode: "round", maxDecimals: 3 })).toBe(
+      "0.667",
+    );
+    expect(calculate("2/3", { roundingMode: "truncate", maxDecimals: 3 })).toBe(
+      "0.666",
+    );
+
+    expect(
+      calculate("999/1000", { roundingMode: "round", maxDecimals: 2 }),
+    ).toBe("1");
+    expect(
+      calculate("999/1000", { roundingMode: "truncate", maxDecimals: 2 }),
+    ).toBe("0.99");
+
+    expect(calculate("-2/3", { roundingMode: "round", maxDecimals: 3 })).toBe(
+      "-0.667",
+    );
+    expect(
+      calculate("-2/3", { roundingMode: "truncate", maxDecimals: 3 }),
+    ).toBe("-0.666");
+
+    expect(calculate("sqrt(2) * sqrt(2)")).toBe("2");
+  });
+
   function expectToPreserveCorrectness(expression: string) {
     expect(calculate(calculate(expression, { format: "precise" }))).toBe(
       calculate(expression),
