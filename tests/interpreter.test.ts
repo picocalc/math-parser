@@ -404,6 +404,18 @@ describe("evaluate", () => {
     expect(calculate("(9/4) ^ (1/2)", { format: "precise" })).toBe("3/2");
   });
 
+  it("should handle multiplication of constants with fractional exponent", () => {
+    expect(calculate("2pi^1.5", { format: "precise" })).toBe("2pi^(3/2)");
+    expect(calculate("2sqrt(pi)", { format: "precise" })).toBe("2sqrt(pi)");
+    expect(calculate("2pi^-0.5", { format: "precise" })).toBe("2/sqrt(pi)");
+  });
+
+  it("should handle division of constants with fractional exponent", () => {
+    expect(calculate("2/pi^1.5", { format: "precise" })).toBe("2/pi^(3/2)");
+    expect(calculate("2/sqrt(pi)", { format: "precise" })).toBe("2/sqrt(pi)");
+    expect(calculate("2/pi^0.5", { format: "precise" })).toBe("2/sqrt(pi)");
+  });
+
   it("should handle fractional exponentiation", () => {
     expect(calculate("8 ^ (1/3)")).toBe("2");
     expect(calculate("8 ^ (2/3)")).toBe("4");

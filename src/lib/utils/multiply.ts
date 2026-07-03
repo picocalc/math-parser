@@ -17,6 +17,7 @@ export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
   let d: bigint;
   let c: ValueConstant | undefined;
   let expN: bigint | undefined;
+  let expD: bigint | undefined;
 
   if (a.d === 1n && b.d === 1n) {
     n = aN * bN;
@@ -35,11 +36,15 @@ export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
   const aExpN = a.e?.n;
   const bExpN = b.e?.n;
 
+  const aExpD = a.e?.d;
+  const bExpD = b.e?.d;
+
   if (a.c === b.c) {
-    const aExpD = a.e?.d ?? 1n;
-    const bExpD = b.e?.d ?? 1n;
     const e = simplify(
-      add({ n: aExpN ?? 1n, d: aExpD }, { n: bExpN ?? 1n, d: bExpD }),
+      add(
+        { n: aExpN ?? 1n, d: aExpD ?? 1n },
+        { n: bExpN ?? 1n, d: bExpD ?? 1n },
+      ),
     );
     return { n, d, c: a.c, e };
   }
@@ -58,6 +63,13 @@ export function multiply<V extends Value>(a: V, b: V): V | NormalValue {
     expN = bExpN;
   }
 
-  const e = expN ? { n: expN } : undefined;
+  if (aExpD !== undefined && bExpD === undefined) {
+    expD = aExpD;
+  } else if (bExpD !== undefined && aExpD === undefined) {
+    expD = bExpD;
+  }
+
+  const e = expN ? { n: expN, d: expD } : undefined;
+
   return { n, d, c, e };
 }
