@@ -47,9 +47,7 @@ function formatResult(v: NormalValue, options: PrecisionOptions = {}): string {
 
   if (d === 0n) return "NaN";
 
-  if (options.format === "precise") {
-    return formatPrecise(v);
-  }
+  if (options.format === "precise") return formatPrecise(v);
 
   const { maxDecimals = 30, roundingMode = "round" } = options;
 
@@ -59,10 +57,7 @@ function formatResult(v: NormalValue, options: PrecisionOptions = {}): string {
   let integerPart = (absN / d).toString();
   let remainder = absN % d;
 
-  if (remainder === 0n) {
-    const res = (isNegative ? "-" : "") + integerPart;
-    return res === "-0" ? "0" : res;
-  }
+  if (remainder === 0n) return (isNegative ? "-" : "") + integerPart;
 
   let fractionalPart = "";
   let count = 0;
@@ -98,21 +93,12 @@ function formatResult(v: NormalValue, options: PrecisionOptions = {}): string {
     }
   }
 
-  let lastNonZero = -1;
-  for (let i = fractionalPart.length - 1; i >= 0; i--) {
-    if (fractionalPart[i] !== "0") {
-      lastNonZero = i;
-      break;
-    }
-  }
+  const finalFraction = fractionalPart.replace(/0+$/, "");
+  const result = finalFraction
+    ? `${integerPart}.${finalFraction}`
+    : integerPart;
 
-  const finalFraction =
-    lastNonZero === -1 ? "" : fractionalPart.slice(0, lastNonZero + 1);
-  const result =
-    finalFraction === "" ? integerPart : `${integerPart}.${finalFraction}`;
-  const sign = isNegative && result !== "0" ? "-" : "";
-
-  return sign + result;
+  return (isNegative ? "-" : "") + result;
 }
 
 export { formatResult };

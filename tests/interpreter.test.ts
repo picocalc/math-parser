@@ -23,10 +23,12 @@ describe("evaluate", () => {
 
   it("should handle a simple positive number", () => {
     expect(calculate("+1")).toBe("1");
+    expect(calculate("+0")).toBe("0");
   });
 
-  it("should handle a simple negative number", () => {
+  it("should handle a simple negation", () => {
     expect(calculate("-1")).toBe("-1");
+    expect(calculate("-0")).toBe("0");
   });
 
   it("should handle double unary operator", () => {

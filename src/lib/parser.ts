@@ -111,56 +111,53 @@ export function parse(tokens: Token[]): ParsedToken[] {
       token = resolveIdentifier(token);
     }
 
-    let prevParsed = result[result.length - 1];
+    const isPrevOperand = isOperand(result[result.length - 1]);
 
     // --- Handle Pipes ---
     if (token.type === "PIPE") {
-      const isClosing = absStack > 0 && isOperand(prevParsed);
-
+      const isClosing = absStack > 0 && isPrevOperand;
       if (isClosing) {
         result.push({ type: "ABS_CLOSE", pos: token.pos });
         absStack--;
-      } else {
-        if (isOperand(prevParsed)) {
-          result.push({ type: "IMPLICIT_MUL", pos: token.pos });
-        }
-        result.push({ type: "ABS_OPEN", pos: token.pos });
-        absStack++;
+        continue;
       }
+      if (isPrevOperand) {
+        result.push({ type: "IMPLICIT_MUL", pos: token.pos });
+      }
+      result.push({ type: "ABS_OPEN", pos: token.pos });
+      absStack++;
       continue;
     }
 
-    if (isOperand(prevParsed)) {
-      const needsImplicit =
-        token.type === "LPAREN" ||
-        token.type === "FUNC" ||
-        token.type === "NUMBER" ||
-        token.type === "CONST";
+    const needsImplicit =
+      token.type === "LPAREN" ||
+      token.type === "FUNC" ||
+      token.type === "NUMBER" ||
+      token.type === "CONST";
 
-      if (needsImplicit) {
-        result.push({ type: "IMPLICIT_MUL", pos: token.pos });
-      }
+    if (needsImplicit && isPrevOperand) {
+      result.push({ type: "IMPLICIT_MUL", pos: token.pos });
     }
 
-    prevParsed = result[result.length - 1];
+    const prevParsed = result[result.length - 1];
 
     // --- Syntax Validation ---
-    if (isBinaryOperator(token)) {
-      if (isUnaryContext(prevParsed)) {
-        throw new UnexpectedOperatorError(
-          `Unexpected operator '${getSym(token)}'`,
-          token.pos,
-        );
-      }
+    if (isBinaryOperator(token) && isUnaryContext(prevParsed)) {
+      throw new UnexpectedOperatorError(
+        `Unexpected operator '${getSym(token)}'`,
+        token.pos,
+      );
     }
 
-    if (token.type === "FACTORIAL") {
-      if (!isOperand(prevParsed) && prevParsed?.type !== "RPAREN") {
-        throw new UnexpectedOperatorError(
-          "Unexpected factorial operator",
-          token.pos,
-        );
-      }
+    if (
+      token.type === "FACTORIAL" &&
+      !isOperand(prevParsed) &&
+      prevParsed?.type !== "RPAREN"
+    ) {
+      throw new UnexpectedOperatorError(
+        "Unexpected factorial operator",
+        token.pos,
+      );
     }
 
     if (token.type === "RPAREN") {
