@@ -653,6 +653,8 @@ describe("evaluate", () => {
     expect(calculate("0 * e", { format: "precise" })).toBe("0");
     expect(calculate("pi * 0", { format: "precise" })).toBe("0");
     expect(calculate("e * 0", { format: "precise" })).toBe("0");
+    expect(calculate("pi * pi^-1", { format: "precise" })).toBe("1");
+    expect(calculate("pi^-1 * pi", { format: "precise" })).toBe("1");
   });
 
   it("should handle exponentiation of constants", () => {
@@ -660,7 +662,6 @@ describe("evaluate", () => {
     expect(calculate("e ^ 0", { format: "precise" })).toBe("1");
     expect(calculate("pi ^ 1", { format: "precise" })).toBe("pi");
     expect(calculate("e ^ 1", { format: "precise" })).toBe("e");
-    expect(calculate("pi * pi^-1", { format: "precise" })).toBe("1");
   });
 
   it("should handle a constant with pipe operator", () => {
