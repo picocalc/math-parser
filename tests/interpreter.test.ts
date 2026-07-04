@@ -23,10 +23,12 @@ describe("evaluate", () => {
 
   it("should handle a simple positive number", () => {
     expect(calculate("+1")).toBe("1");
+    expect(calculate("+0")).toBe("0");
   });
 
-  it("should handle a simple negative number", () => {
+  it("should handle a simple negation", () => {
     expect(calculate("-1")).toBe("-1");
+    expect(calculate("-0")).toBe("0");
   });
 
   it("should handle double unary operator", () => {
@@ -355,6 +357,14 @@ describe("evaluate", () => {
     expect(calculate("3!2!")).toBe("12");
     expect(calculate("(3)!2")).toBe("12");
     expect(calculate("(3)!(2)")).toBe("12");
+    expect(calculate("(2)3!")).toBe("12");
+  });
+
+  it("should handle factorial with functions", () => {
+    expect(calculate("( sqrt(4) )!")).toBe("2");
+    expect(calculate("sqrt(4) !")).toBe("2");
+    expect(calculate("sqrt( 4! )", { maxDecimals: 12 })).toBe("4.898979485566");
+    expect(calculate("sqrt 4!", { maxDecimals: 12 })).toBe("4.898979485566");
   });
 
   it("should handle absolute values using pipe operator", () => {
@@ -675,7 +685,7 @@ describe("evaluate", () => {
     expect(calculate("(-1) ^ (2/3)")).toBe("1");
     expect(calculate("(-1) ^ .4")).toBe("1");
     expect(calculate("(-1) ^ (1/3)")).toBe("-1");
-    expect(calculate("(-1) ^ .2")).toBe("1");
+    expect(calculate("(-1) ^ .2")).toBe("-1");
   });
 
   it("should handle exponentiation of -1 to a reasonable exponent", () => {

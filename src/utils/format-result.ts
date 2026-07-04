@@ -8,16 +8,15 @@ import type {
 function getConstantStr(coeff: bigint, c?: ValueConstant, e?: ValueExponent) {
   if (coeff === 0n) return "0";
   if (!c) return `${coeff}`;
-  const isOne = e && e.n === 1n && (e.d === undefined || e.d === 1n);
-  if (!e || isOne) {
-    if (coeff === 1n) return c;
-    if (coeff === -1n) return `-${c}`;
-    return `${coeff}${c}`;
+  let constantStr: string = c;
+  if (e) {
+    const num = e.n;
+    const den = e.d ?? 1n;
+    if (num !== den) {
+      const expStr = den === 1n ? `${num}` : `(${num}/${den})`;
+      constantStr = den === 2n * num ? `sqrt(${c})` : `${c}^${expStr}`;
+    }
   }
-  const num = e.n;
-  const den = e.d ?? 1n;
-  const expStr = den === 1n ? `${num}` : `(${num}/${den})`;
-  const constantStr = den === 2n * num ? `sqrt(${c})` : `${c}^${expStr}`;
   if (coeff === 1n) return constantStr;
   if (coeff === -1n) return `-${constantStr}`;
   return `${coeff}${constantStr}`;
@@ -45,74 +44,35 @@ function formatPrecise(v: NormalValue): string {
 function formatResult(v: NormalValue, options: PrecisionOptions = {}): string {
   const { n, d } = v;
 
-  if (d === 0n) return "NaN";
-
-  if (options.format === "precise") {
-    return formatPrecise(v);
-  }
+  if (options.format === "precise") return formatPrecise(v);
 
   const { maxDecimals = 30, roundingMode = "round" } = options;
 
   const isNegative = n < 0;
+
+  const factor = 10n ** BigInt(maxDecimals);
   const absN = isNegative ? -n : n;
 
-  let integerPart = (absN / d).toString();
-  let remainder = absN % d;
+  const numerator = absN * factor;
 
-  if (remainder === 0n) {
-    const res = (isNegative ? "-" : "") + integerPart;
-    return res === "-0" ? "0" : res;
+  const roundOffset = roundingMode === "round" ? d / 2n : 0n;
+  const shiftedResult = (numerator + roundOffset) / d;
+
+  let resultStr = shiftedResult.toString();
+
+  if (resultStr.length <= maxDecimals) {
+    resultStr = resultStr.padStart(maxDecimals + 1, "0");
   }
 
-  let fractionalPart = "";
-  let count = 0;
+  const splitIdx = resultStr.length - maxDecimals;
+  const integerPart = resultStr.slice(0, splitIdx);
+  const fractionalPart = resultStr.slice(splitIdx).replace(/0+$/, "");
 
-  const targetLength = maxDecimals + 1;
+  const finalResult = fractionalPart
+    ? `${integerPart}.${fractionalPart}`
+    : integerPart;
 
-  while (remainder !== 0n && count < targetLength) {
-    remainder *= 10n;
-    fractionalPart += (remainder / d).toString();
-    remainder %= d;
-    count++;
-  }
-
-  const nexDigitStr = fractionalPart[maxDecimals];
-  if (nexDigitStr) {
-    const nextDigit = parseInt(nexDigitStr, 10);
-    // Slice off the lookahead digit so we are at maxDecimals length
-    fractionalPart = fractionalPart.slice(0, maxDecimals);
-
-    if (roundingMode === "round" && nextDigit >= 5) {
-      // We need to increment the fractional part like a number string
-      // BigInt helps us cleanly avoid overflow issues if fractionalPart is all 9s
-      const incremented = (BigInt(fractionalPart) + 1n).toString();
-
-      if (incremented.length > fractionalPart.length) {
-        // If it overflowed (e.g., 999 + 1 = 1000), the carry goes into the integer part
-        integerPart = (BigInt(integerPart) + 1n).toString();
-        fractionalPart = incremented.slice(1);
-      } else {
-        // Pads leading zeros if necessary (e.g., "049" + 1 -> "050")
-        fractionalPart = incremented.padStart(fractionalPart.length, "0");
-      }
-    }
-  }
-
-  let lastNonZero = -1;
-  for (let i = fractionalPart.length - 1; i >= 0; i--) {
-    if (fractionalPart[i] !== "0") {
-      lastNonZero = i;
-      break;
-    }
-  }
-
-  const finalFraction =
-    lastNonZero === -1 ? "" : fractionalPart.slice(0, lastNonZero + 1);
-  const result =
-    finalFraction === "" ? integerPart : `${integerPart}.${finalFraction}`;
-  const sign = isNegative && result !== "0" ? "-" : "";
-
-  return sign + result;
+  return (isNegative && finalResult !== "0" ? "-" : "") + finalResult;
 }
 
 export { formatResult };
