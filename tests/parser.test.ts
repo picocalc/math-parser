@@ -28,6 +28,21 @@ describe("parse", () => {
     expect(() => calculate("(5 + )")).toThrow(UnexpectedOperatorError);
   });
 
+  it("should throw UnexpectedOperatorError for invalid closing parenthesis after a unary operator", () => {
+    expect(() => calculate("(-)")).toThrow(ParserError);
+    expect(() => calculate("(-)")).toThrow(UnexpectedOperatorError);
+    expect(() => calculate("(+)")).toThrow(ParserError);
+    expect(() => calculate("(+)")).toThrow(UnexpectedOperatorError);
+    expect(() => calculate("-)")).toThrow(ParserError);
+    expect(() => calculate("-)")).toThrow(UnexpectedOperatorError);
+    expect(() => calculate("+)")).toThrow(ParserError);
+    expect(() => calculate("+)")).toThrow(UnexpectedOperatorError);
+    expect(() => calculate("sqrt)")).toThrow(ParserError);
+    expect(() => calculate("sqrt)")).toThrow(UnexpectedOperatorError);
+    expect(() => calculate("(sqrt)")).toThrow(ParserError);
+    expect(() => calculate("(sqrt)")).toThrow(UnexpectedOperatorError);
+  });
+
   it("should throw UnexpectedOperatorError for empty parentheses", () => {
     expect(() => calculate("()")).toThrow(ParserError);
     expect(() => calculate("()")).toThrow(UnexpectedOperatorError);

@@ -1,5 +1,11 @@
 import { GenericMathErrror } from "./errors";
-import type { Token, TokenBase, TokenIdentifier } from "./lexer";
+import type {
+  Token,
+  TokenBase,
+  TokenBinaryOperator,
+  TokenIdentifier,
+  TokenNumber,
+} from "./lexer";
 import { getSym } from "./symbol";
 
 interface TokenFn extends TokenBase {
@@ -20,9 +26,15 @@ interface ImplicitMulToken extends TokenBase {
   readonly type: "IMPLICIT_MUL";
 }
 
-interface AbsToken extends TokenBase {
-  readonly type: "ABS_OPEN" | "ABS_CLOSE";
+interface AbsOpenToken extends TokenBase {
+  readonly type: "ABS_OPEN";
 }
+
+interface AbsCloseToken extends TokenBase {
+  readonly type: "ABS_CLOSE";
+}
+
+type AbsToken = AbsOpenToken | AbsCloseToken;
 
 export type ParsedToken =
   | Exclude<Token, { type: "PIPE" | "IDENTIFIER" }>
@@ -34,10 +46,16 @@ export type ParsedToken =
 
 type TokenType = (Token | ParsedToken)["type"];
 
+type OperandToken =
+  | TokenNumber
+  | Extract<Token, { type: "FACTORIAL" | "RPAREN" }>
+  | TokenConst
+  | AbsCloseToken;
+
 /**
  * Helper: Is the last token an "operand" (something that can be followed by a closing pipe or implicit mul)?
  */
-function isOperand(last?: ParsedToken) {
+function isOperand(last?: ParsedToken): last is OperandToken {
   if (!last) return false;
   return (
     last.type === "NUMBER" ||
@@ -48,7 +66,7 @@ function isOperand(last?: ParsedToken) {
   );
 }
 
-function isBinaryOperator(token: ParsedToken) {
+function isBinaryOperator(token: ParsedToken): token is TokenBinaryOperator {
   return (
     token.type === "MUL" ||
     token.type === "DIV" ||
@@ -57,9 +75,6 @@ function isBinaryOperator(token: ParsedToken) {
   );
 }
 
-/**
- * Helper: Does the current context allow a +/- to be unary?
- */
 function isUnaryContext(last?: ParsedToken) {
   return !isOperand(last);
 }
@@ -112,7 +127,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
 
     const pos = token.pos;
 
-    const isPrevOperand = isOperand(result[result.length - 1]);
+    const isPrevOperand = isOperand(result.at(-1));
 
     // --- Handle Pipes ---
     if (token.type === "PIPE") {
@@ -140,7 +155,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
       result.push({ type: "IMPLICIT_MUL", pos });
     }
 
-    const prevParsed = result[result.length - 1];
+    const prevParsed = result.at(-1);
 
     // --- Syntax Validation ---
     if (isBinaryOperator(token) && isUnaryContext(prevParsed)) {
@@ -151,34 +166,19 @@ export function parse(tokens: Token[]): ParsedToken[] {
     }
 
     if (
-      token.type === "FACTORIAL" &&
-      !isOperand(prevParsed) &&
-      prevParsed?.type !== "RPAREN"
+      (token.type === "FACTORIAL" || token.type === "RPAREN") &&
+      isUnaryContext(prevParsed)
     ) {
+      if (!prevParsed) {
+        throw new UnexpectedOperatorError(
+          `Unexpected '${getSym(token)}' at the beginning of expression`,
+          token.pos,
+        );
+      }
       throw new UnexpectedOperatorError(
-        "Unexpected factorial operator",
+        `Unexpected '${getSym(token)}' after '${getSym(prevParsed)}'`,
         token.pos,
       );
-    }
-
-    if (token.type === "RPAREN") {
-      if (
-        prevParsed &&
-        (prevParsed.type === "PLUS" ||
-          prevParsed.type === "MINUS" ||
-          isBinaryOperator(prevParsed))
-      ) {
-        throw new UnexpectedOperatorError(
-          `Unexpected ')' after operator '${getSym(prevParsed)}'`,
-          token.pos,
-        );
-      }
-      if (prevParsed?.type === "LPAREN") {
-        throw new UnexpectedOperatorError(
-          "Unexpected ')' after '('",
-          token.pos,
-        );
-      }
     }
 
     if (
@@ -206,14 +206,12 @@ export function parse(tokens: Token[]): ParsedToken[] {
   }
 
   // --- Final State Validation ---
+  const last = result.at(-1);
+
   if (absStack > 0) {
-    throw new ParserError(
-      "Unclosed absolute value '|'",
-      result[result.length - 1]?.pos ?? 0,
-    );
+    throw new ParserError("Unclosed absolute value '|'", last?.pos ?? 0);
   }
 
-  const last = result[result.length - 1];
   const trailingOperators: TokenType[] = [
     "PLUS",
     "MINUS",

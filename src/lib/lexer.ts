@@ -21,19 +21,24 @@ export interface TokenIdentifier extends TokenBase {
   id: string;
 }
 
-export type Token =
-  | TokenNumber
-  | TokenIdentifier
-  | { type: "PLUS"; pos: number }
-  | { type: "MINUS"; pos: number }
+export type TokenBinaryOperator =
   | { type: "MUL"; pos: number }
   | { type: "DIV"; pos: number }
   | { type: "POW"; pos: number }
-  | { type: "MOD"; pos: number }
+  | { type: "MOD"; pos: number };
+
+export type Token =
+  | TokenNumber
+  | TokenIdentifier
+  | TokenBinaryOperator
+  | { type: "PLUS"; pos: number }
+  | { type: "MINUS"; pos: number }
   | { type: "FACTORIAL"; pos: number }
   | { type: "PIPE"; pos: number }
   | { type: "LPAREN"; pos: number }
   | { type: "RPAREN"; pos: number };
+
+type TokenType = Exclude<Token, TokenNumber | TokenIdentifier>["type"];
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
@@ -55,6 +60,19 @@ interface LexerOptions {
  * Maximum allowed expression length
  */
 const MAX_EXPRESSION_LENGTH = 75_000_000;
+
+const CHAR_MAP: Record<string, TokenType> = {
+  "(": "LPAREN",
+  ")": "RPAREN",
+  "+": "PLUS",
+  "-": "MINUS",
+  "*": "MUL",
+  "/": "DIV",
+  "^": "POW",
+  "!": "FACTORIAL",
+  "|": "PIPE",
+  "%": "MOD",
+};
 
 /**
  * Simple lexer (tokenizer).
@@ -146,57 +164,13 @@ export function tokenize(
       continue;
     }
 
-    if (ch === "(") {
-      tokens.push({ type: "LPAREN", pos });
-      continue;
+    const type = CHAR_MAP[ch];
+
+    if (!type) {
+      throw new LexerError(`Unexpected character '${ch}'`, index);
     }
 
-    if (ch === ")") {
-      tokens.push({ type: "RPAREN", pos });
-      continue;
-    }
-
-    if (ch === "+") {
-      tokens.push({ type: "PLUS", pos });
-      continue;
-    }
-
-    if (ch === "-") {
-      tokens.push({ type: "MINUS", pos });
-      continue;
-    }
-
-    if (ch === "*") {
-      tokens.push({ type: "MUL", pos });
-      continue;
-    }
-
-    if (ch === "/") {
-      tokens.push({ type: "DIV", pos });
-      continue;
-    }
-
-    if (ch === "^") {
-      tokens.push({ type: "POW", pos });
-      continue;
-    }
-
-    if (ch === "!") {
-      tokens.push({ type: "FACTORIAL", pos });
-      continue;
-    }
-
-    if (ch === "|") {
-      tokens.push({ type: "PIPE", pos });
-      continue;
-    }
-
-    if (ch === "%") {
-      tokens.push({ type: "MOD", pos });
-      continue;
-    }
-
-    throw new LexerError(`Unexpected character '${ch}'`, index);
+    tokens.push({ type, pos });
   }
 
   return tokens;
