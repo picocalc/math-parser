@@ -20,6 +20,7 @@ describe("tokenize", () => {
     expect(() => tokenize("1.1.1")).toThrow(LexerError);
     expect(() => tokenize("1.1.1.1")).toThrow(LexerError);
     expect(() => tokenize("1 + 1.1.1")).toThrow(LexerError);
+    expect(() => tokenize(".")).toThrow(LexerError);
   });
 
   it("shoud throw LexerError for invalid scientific notation", () => {
