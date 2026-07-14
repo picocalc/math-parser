@@ -1,4 +1,4 @@
-export class PicocalcErrror extends Error {
+export class PicocalcError extends Error {
   pos?: number;
   constructor(name: string, message: string, pos?: number) {
     if (pos === undefined) {
@@ -11,7 +11,7 @@ export class PicocalcErrror extends Error {
   }
 }
 
-class InterpreterError extends PicocalcErrror {
+class InterpreterError extends PicocalcError {
   constructor(message: string, pos?: number) {
     super("InterpreterError", message, pos);
   }
