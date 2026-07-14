@@ -5,7 +5,7 @@ import { parse } from "./lib/parser";
 import type { PrecisionOptions } from "./lib/types";
 import { formatResult } from "./utils/format-result";
 
-export { PicocalcErrror } from "./lib/errors";
+export { PicocalcError } from "./lib/errors";
 
 interface CalculateOptions extends PrecisionOptions {
   decimalSeparator?: "." | ",";

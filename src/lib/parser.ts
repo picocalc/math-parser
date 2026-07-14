@@ -1,4 +1,4 @@
-import { PicocalcErrror } from "./errors";
+import { PicocalcError } from "./errors";
 import type {
   Token,
   TokenBase,
@@ -79,7 +79,7 @@ function isUnaryContext(last?: ParsedToken) {
   return !isOperand(last);
 }
 
-export class ParserError extends PicocalcErrror {
+export class ParserError extends PicocalcError {
   constructor(message: string, pos: number) {
     super("ParserError", message, pos);
   }
